@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F1E3A"/>
+      <stop offset="100%" style="stop-color:#070C18"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8C84A"/>
+      <stop offset="100%" style="stop-color:#A07010"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" style="stop-color:#C9A227;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#C9A227;stop-opacity:0"/>
+    </radialGradient>
+    <clipPath id="round">
+      <rect width="200" height="200" rx="44"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
+  <rect width="200" height="200" rx="44" fill="url(#glow)"/>
+
+  <!-- Gold accent line top -->
+  <rect x="40" y="0" width="120" height="3" rx="0" fill="url(#gold)" opacity="0.9"/>
+
+  <!-- Sticker card shape (tilted) -->
+  <g transform="translate(100,100) rotate(-8) translate(-38,-50)">
+    <rect x="0" y="0" width="76" height="100" rx="10" fill="#1A2744" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+    <!-- Card shine -->
+    <rect x="0" y="0" width="76" height="100" rx="10" fill="url(#shine)"/>
+    <!-- Card gradient band -->
+    <rect x="0" y="0" width="76" height="40" rx="10" fill="#C9A227" opacity="0.15"/>
+    <!-- Mini player circle -->
+    <circle cx="38" cy="30" r="16" fill="rgba(201,162,39,0.15)" stroke="rgba(201,162,39,0.4)" stroke-width="1.5"/>
+    <!-- Silhouette joueur stylisée -->
+    <circle cx="38" cy="24" r="6" fill="#C9A227" opacity="0.7"/>
+    <path d="M26 42 Q38 34 50 42" stroke="#C9A227" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <!-- Lines bas de carte -->
+    <rect x="12" y="54" width="52" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+    <rect x="18" y="63" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.07)"/>
+    <rect x="22" y="71" width="32" height="3" rx="1.5" fill="rgba(255,255,255,0.07)"/>
+    <!-- Numero sticker -->
+    <rect x="6" y="6" width="18" height="10" rx="4" fill="rgba(0,0,0,0.4)"/>
+    <text x="15" y="14.5" font-family="Inter,Arial,sans-serif" font-size="6" font-weight="700" fill="rgba(255,255,255,0.8)" text-anchor="middle">26</text>
+    <!-- Shiny star -->
+    <text x="66" y="16" font-family="Arial" font-size="10" fill="#FFD700" opacity="0.9">★</text>
+  </g>
+
+  <!-- Second card behind (décalée) -->
+  <g transform="translate(100,100) rotate(6) translate(-38,-50)" opacity="0.4">
+    <rect x="0" y="0" width="76" height="100" rx="10" fill="#131E35" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  </g>
+
+  <!-- Text "PB" monogram -->
+  <text x="100" y="168" font-family="Inter,system-ui,Arial,sans-serif" font-size="22" font-weight="900" fill="#F0F4FF" text-anchor="middle" letter-spacing="-1">Panini<tspan fill="#C9A227">Base</tspan></text>
+
+  <!-- Shine overlay -->
+  <rect width="200" height="200" rx="44" fill="url(#shine)"/>
+</svg>

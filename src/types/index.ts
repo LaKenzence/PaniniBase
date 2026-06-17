@@ -3,9 +3,9 @@
 export type StickerCategory = 'player' | 'badge' | 'logo' | 'stadium' | 'special' | 'shiny';
 
 export interface Edition {
-  id: string;           // e.g. '98', '06', '22'
+  id: string;
   year: number;
-  label: string;        // e.g. "France 1998"
+  label: string;
   hostCountry: string;
   hostFlag: string;
   totalStickers: number;
@@ -16,24 +16,25 @@ export interface Edition {
 // ─── Stickers ────────────────────────────────────────────────────────────────
 
 export interface Sticker {
-  id: string;             // `${editionId}-${number}`
+  id: string;
   editionId: string;
   number: number;
   category: StickerCategory;
   isShiny: boolean;
+  imageUrl?: string;        // ← NOUVEAU : URL Supabase Storage
   player?: PlayerOnSticker;
-  teamName?: string;      // for badge/logo stickers
+  teamName?: string;
 }
 
 export interface PlayerOnSticker {
   name: string;
   nationality: string;
   flag: string;
-  position: 'Gardien' | 'Défenseur' | 'Milieu' | 'Attaquant';
-  jerseyNumber: number;
-  club: string;
+  position?: 'Gardien' | 'Défenseur' | 'Milieu' | 'Attaquant';
+  jerseyNumber?: number;
+  club?: string;
   colKey: string;
-  playerKey?: string;     // links to Player entity for cross-edition tracking
+  playerKey?: string;
 }
 
 // ─── Players (cross-edition entity) ─────────────────────────────────────────
@@ -44,7 +45,7 @@ export interface Player {
   flag: string;
   nationality: string;
   position: string;
-  editionIds: string[];   // all editions where this player appears
+  editionIds: string[];
 }
 
 // ─── Collection (user state) ─────────────────────────────────────────────────
@@ -56,7 +57,7 @@ export interface CollectionEntry {
   duplicates: number;
 }
 
-export type CollectionMap = Record<string, CollectionEntry>; // key: `${editionId}-${number}`
+export type CollectionMap = Record<string, CollectionEntry>;
 
 // ─── UI helpers ──────────────────────────────────────────────────────────────
 

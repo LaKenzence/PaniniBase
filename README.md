@@ -1,128 +1,137 @@
 # ⚽ PaniniBase
 
-Base de données complète des stickers Panini Coupe du Monde, de 1970 à 2026.  
-Gestion de collection, suivi des doublons, historique des joueurs cross-éditions.
+Base de données complète des stickers Panini Coupe du Monde (1970–2026).
+Gestion de collection, échanges, auth Supabase, PWA.
 
 ---
 
 ## Stack
 
-| Couche      | Techno                   |
-|-------------|--------------------------|
-| Framework   | React 18 + TypeScript    |
-| State       | Zustand (+ persist)      |
-| Style       | Tailwind CSS             |
-| Build       | Vite                     |
-| DB (futur)  | Supabase (PostgreSQL)    |
-| Deploy      | Vercel                   |
+| Couche    | Techno                          |
+|-----------|---------------------------------|
+| Framework | React 18 + TypeScript           |
+| State     | Zustand + persist               |
+| Style     | CSS variables inline (dark)     |
+| Build     | Vite                            |
+| Auth + DB | Supabase (PostgreSQL + Storage) |
+| Deploy    | Vercel                          |
 
 ---
 
-## Démarrage rapide
+## Démarrage
 
 ```bash
-cd paninibase
-npm install
-npm run dev
+cd paninibase && npm install && npm run dev
+# http://localhost:5173
 ```
-
-L'app tourne sur `http://localhost:5173`.
 
 ---
 
-## Structure du projet
+## Structure
 
 ```
 src/
-├── types/          # TypeScript : Edition, Sticker, Player, CollectionEntry...
-├── data/
-│   └── stickers.ts # Données seed : éditions, stickers, joueurs cross-éditions
-├── store/
-│   └── index.ts    # Zustand : CollectionStore (persisté) + UIStore (navigation)
-├── hooks/
-│   └── index.ts    # Hooks dérivés : stats globales, par édition, par équipe, filtrés
+├── types/index.ts             # Edition, Sticker (imageUrl?), Player, CollectionMap
+├── data/stickers.ts           # 15 albums, 2026 complet (1034 stickers codes officiels)
+├── store/index.ts             # useAuthStore, useCollectionStore, useTradesStore, useUIStore
+├── hooks/index.ts             # useGlobalStats, useEditionStats, useTeamStats, useFilteredStickers
+├── lib/supabase.ts            # Client Supabase
 ├── components/
-│   ├── StickerCard.tsx    # Carte sticker (grille)
-│   ├── DetailPanel.tsx    # Panneau latéral de détail
-│   └── GlobalSearch.tsx   # Recherche globale topbar
+│   ├── AuthModal.tsx          # Login/signup dark theme toggle
+│   ├── StickerCard.tsx        # Carte holo + imageUrl + fallback drapeau
+│   ├── DetailPanel.tsx        # Détail sticker + image cliquable + voisins
+│   └── GlobalSearch.tsx       # Recherche globale Ctrl+K dark theme
 ├── views/
-│   ├── HomeView.tsx        # Grille des albums
-│   ├── AlbumView.tsx       # Vue album avec filtres + grille + panel
-│   ├── PlayerView.tsx      # Historique d'un joueur cross-éditions
-│   └── CollectionView.tsx  # Stats collection + import/export
-├── lib/
-│   └── supabase.ts         # Stub + schéma SQL prêt à l'emploi
-├── App.tsx         # Layout principal + topbar
+│   ├── HomeView.tsx           # Grille albums + progress
+│   ├── AlbumView.tsx          # Filtres + position + grille/liste + sélection multiple
+│   ├── PlayerView.tsx         # Cross-éditions joueur
+│   ├── StatsView.tsx          # Dashboard stats + charts recharts + export JSON/CSV
+│   └── TradeView.tsx          # Échanges doublons + lien token partageable
+├── App.tsx                    # Layout + auth + nav desktop/mobile
 ├── main.tsx
-└── index.css       # CSS variables + reset
+└── index.css                  # Dark theme vars + animations holo
+public/
+├── logo.svg / logo-192.png / logo-512.png
+└── manifest.json              # PWA
 ```
 
 ---
 
-## Fonctionnalités actuelles
+## Design system
 
-- ✅ 15 albums référencés (1970–2026)
-- ✅ Stickers joueurs, écussons, shiny
-- ✅ Gestion de collection (posséder / doublons) persistée en localStorage
-- ✅ Filtres : tous / possédés / manquants / doublons
-- ✅ Filtre par équipe avec compteur de complétion
-- ✅ Recherche globale multi-éditions
-- ✅ Panneau de détail avec stickers voisins
-- ✅ Page joueur avec toutes ses apparitions Panini
-- ✅ Export / import collection JSON
-- ✅ Stats de complétion par album et par équipe
+- Palette : `#070C18` base · `#0D1526` card · `#1A2744` elevated
+- Gold `#C9A227` · Green `#2ECC71` · Red `#E74C3C` · Font Inter
+- Tout en inline style avec CSS variables — pas de classes Tailwind
+- Animations : shimmer holo hover, rainbow shiny, slide-in, pulse-glow, toast notification
+- Mobile : bottom nav fixe + bottom sheet user + topbar sans nav sur mobile
 
 ---
 
-## Roadmap
+## Fonctionnalités ✅
 
-### Phase 2 — Données complètes
-- [ ] Importer tous les stickers de chaque album (scraping ou CSV)
-- [ ] Ajouter les stickers spéciaux (badges, logos équipes, stades, intro pages)
-- [ ] Importer les vraies images des stickers
+- 15 albums (1970–2026), album 2026 complet 1034 stickers codes officiels
+- Extra Stickers 2026 : 20 joueurs × 4 versions (Purple/Bronze/Silver/Gold)
+- Auth Supabase email (pseudo + email + mdp, confirmation mail)
+- Collection sync Supabase + localStorage fallback
+- Filtres all/owned/missing/dupes + équipe + position
+- **Sélection multiple** : mode ☑, checkbox, Ajouter/Retirer en masse
+- **Raccourcis clavier** : Espace=✓/✕, S=sélection, Esc=fermer, Ctrl+K=recherche
+- Vue grille + vue liste dans AlbumView
+- Recherche globale dark theme (Ctrl+K), groupée par joueur
+- Panneau détail + image cliquable plein écran + stickers voisins
+- Page joueur cross-éditions
+- **Export/Import JSON et CSV**
+- Mode échange : doublons + recherches + lien token partageable
+- Support images stickers (imageUrl Supabase Storage)
+- Dashboard stats : KPIs, bar chart, pie chart, top 5 albums
+- PWA installable (manifest + meta tags)
+- Responsive mobile : bottom nav + topbar sans nav sur petit écran
 
-### Phase 3 — Supabase
-- [ ] Auth (email + OAuth Google)
-- [ ] Migrer collection localStorage → `user_collection` Supabase
-- [ ] Voir `src/lib/supabase.ts` pour le schéma SQL complet
+---
 
-### Phase 4 — Social
-- [ ] Liste d'échange de doublons
-- [ ] Partage de collection (lien public)
-- [ ] Comparaison de collections entre amis
+## Roadmap 🔲
 
-### Phase 5 — IA
-- [ ] Scan photo → reconnaissance du numéro de sticker
-- [ ] Suggestions de complétion
+- [ ] Compléter albums 1970–2022 avec vrais codes Panini
+- [ ] Scraper images worldtradingcards.com → Supabase Storage
+- [ ] Page profil public `paninibase.com/u/username`
+- [ ] Comparaison de collections entre users
+- [ ] Mode scan rapide mobile (cocher vite en ouvrant pochettes)
+- [ ] Matching automatique échanges entre users
+- [ ] PWA service worker (offline)
+- [ ] Positions joueurs 2026 (tous à 'Milieu' par défaut faute de données)
+
+---
+
+## Supabase
+
+```
+URL     : https://vaufybtidzejfoqgbpvo.supabase.co
+Tables  : collection, trades, profiles (RLS activé)
+Storage : bucket 'stickers' (public) — ex: mbappe.png
+Auth    : email activée
+```
+
+SQL schéma initial dans `src/lib/supabase.ts`.
 
 ---
 
 ## Ajouter des stickers
 
-Édite `src/data/stickers.ts`. Utilise les helpers :
-
 ```typescript
-// Sticker joueur
-mkPlayer(editionId, number, nom, equipe, drapeau, colKey, position, maillot, club, playerKey?, isShiny?)
+mkPlayer(editionId, code, nom, equipe, flag, colKey, position, jersey, club, playerKey?, isShiny?, imageUrl?)
+mkBadge(editionId, code, teamName, flag, colKey)
 
-// Sticker écusson
-mkBadge(editionId, number, nomEquipe, drapeau, colKey)
+// Shiny sans playerKey :
+mkPlayer('26', 'FRA10', 'Mbappé', 'France', '🇫🇷', 'fr', 'Attaquant', 10, 'Real Madrid', undefined, true)
+// Avec image :
+mkPlayer('26', 'FRA10', 'Mbappé', ..., 'mbappe', true, 'https://...supabase.co/storage/v1/object/public/stickers/mbappe.png')
 ```
-
-Pour la clé `playerKey`, crée l'entrée correspondante dans `PLAYERS` pour activer le suivi cross-éditions.
 
 ---
 
 ## Déploiement Vercel
 
 ```bash
-npm run build      # génère dist/
-# Push sur GitHub, connecte le repo dans Vercel
-# Vercel détecte Vite automatiquement
-```
-
-Variables d'environnement à ajouter sur Vercel quand tu branches Supabase :
-```
-VITE_SUPABASE_URL=https://xxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5...
+npm run build  # génère dist/
+# Push GitHub → connecte dans Vercel → Vite détecté auto
 ```

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Sticker } from '../types';
-import { useCollectionStore } from '../store';
+import { useCollectionStore } from '../store/index';
 import { BG } from '../data/stickers';
 
 interface Props {
@@ -15,79 +15,145 @@ export const StickerCard: React.FC<Props> = ({ sticker, selected, onClick }) => 
 
   const owned = isOwned(sticker.editionId, sticker.number);
   const dupes = getDuplicates(sticker.editionId, sticker.number);
-  const bg = BG[sticker.player?.colKey ?? ''] ?? 'linear-gradient(135deg,#1a3a6e,#2d5fa0)';
+  const bg = BG[sticker.player?.colKey ?? ''] ?? 'linear-gradient(135deg,#0d1a3a,#1a2f6b)';
   const isBadge = sticker.category === 'badge';
+  const hasImage = !!sticker.imageUrl;
 
-  let borderClass = 'border-[var(--color-border-tertiary)]';
-  if (selected) borderClass = 'border-[var(--red)] border-[1.5px]';
-  else if (dupes > 0) borderClass = 'border-[var(--gold)] border-[1.5px]';
-  else if (owned) borderClass = 'border-[var(--green)] border-[1.5px]';
+  let borderColor = 'rgba(255,255,255,0.07)';
+  if (selected)       borderColor = '#E74C3C';
+  else if (dupes > 0) borderColor = '#C9A227';
+  else if (owned)     borderColor = '#2ECC71';
+
+  let shadow = 'none';
+  if (selected)       shadow = '0 0 0 1.5px #E74C3C, 0 4px 16px rgba(231,76,60,0.3)';
+  else if (dupes > 0) shadow = '0 0 0 1.5px #C9A227, 0 4px 16px rgba(201,162,39,0.2)';
+  else if (owned)     shadow = '0 0 0 1.5px #2ECC71, 0 4px 16px rgba(46,204,113,0.15)';
 
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-lg border overflow-hidden cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-md bg-[var(--color-background-primary)] ${borderClass}`}
+      style={{
+        borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
+        border: `1px solid ${borderColor}`,
+        boxShadow: shadow,
+        background: '#0D1526',
+        transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
+        position: 'relative',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
     >
-      {/* Sticker visual */}
-      <div className="relative w-full aspect-[3/4] flex flex-col items-center justify-center overflow-hidden" style={{ background: bg }}>
-        {/* Sheen overlay */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.15) 0%,transparent 55%)' }} />
+      {/* ── Visual ── */}
+      <div
+        style={{
+          position: 'relative', width: '100%', aspectRatio: '3/4',
+          background: hasImage ? '#000' : bg,
+          overflow: 'hidden',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        {/* Image réelle */}
+        {hasImage ? (
+          <>
+            <img
+              src={sticker.imageUrl}
+              alt={sticker.player?.name ?? ''}
+              style={{
+                width: '100%', height: '100%', objectFit: 'cover',
+                display: 'block',
+                filter: owned ? 'none' : 'grayscale(60%) brightness(0.6)',
+                transition: 'filter 0.2s',
+              }}
+            />
+            {/* Shimmer overlay au hover pour les shiny */}
+            {sticker.isShiny && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(105deg, transparent 30%, rgba(255,215,0,0.15) 45%, rgba(255,100,200,0.1) 50%, rgba(100,200,255,0.12) 55%, transparent 70%)',
+                mixBlendMode: 'screen',
+              }} />
+            )}
+          </>
+        ) : (
+          <>
+            {/* Gradient background */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,rgba(255,255,255,0.13) 0%,transparent 55%)' }} />
 
-        {/* Shiny shimmer */}
-        {sticker.isShiny && (
-          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(45deg,rgba(255,215,0,0.15),rgba(255,255,255,0.1),rgba(255,215,0,0.15))', backgroundSize: '200% 200%' }} />
+            {/* Contenu emoji */}
+            {isBadge ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '28px', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }}>{sticker.player?.flag}</span>
+                <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.6)', marginTop: '4px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Écusson</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: '1.5px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginBottom: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                  {sticker.player?.flag}
+                </div>
+                <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.92)', fontWeight: 600, maxWidth: '80px', textAlign: 'center', textShadow: '0 1px 3px rgba(0,0,0,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 4px' }}>
+                  {sticker.player?.name.split(' ').pop()}
+                </span>
+              </div>
+            )}
+
+            {/* Dim if not owned */}
+            {!owned && (
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
+            )}
+          </>
         )}
 
         {/* Number badge */}
-        <span className="absolute top-1 left-1.5 text-[8px] font-medium text-white/90 bg-black/40 px-1 py-0.5 rounded">
+        <span style={{
+          position: 'absolute', top: '5px', left: '5px', zIndex: 10,
+          fontSize: '7.5px', fontWeight: 700,
+          padding: '1.5px 4px', borderRadius: '4px',
+          background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(4px)',
+        }}>
           {sticker.number}
         </span>
 
         {/* Status badge */}
-        {dupes > 0 && (
-          <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-[var(--gold)] flex items-center justify-center text-[7px] text-white font-bold">
+        {dupes > 0 ? (
+          <span style={{
+            position: 'absolute', top: '5px', right: '5px', zIndex: 10,
+            width: '16px', height: '16px', borderRadius: '50%',
+            background: '#C9A227', fontSize: '8px', fontWeight: 800,
+            color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 6px rgba(201,162,39,0.7)',
+          }}>
             {dupes}
           </span>
-        )}
-        {owned && dupes === 0 && (
-          <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-[var(--green)] flex items-center justify-center text-[8px] text-white">
+        ) : owned ? (
+          <span style={{
+            position: 'absolute', top: '5px', right: '5px', zIndex: 10,
+            width: '16px', height: '16px', borderRadius: '50%',
+            background: '#2ECC71', fontSize: '9px',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 6px rgba(46,204,113,0.6)',
+          }}>
             ✓
           </span>
-        )}
+        ) : null}
 
-        {/* Content */}
-        {isBadge ? (
-          <>
-            <span className="text-3xl mb-1">{sticker.player?.flag}</span>
-            <span className="text-[8px] text-white/80 font-medium text-center px-1">ÉCUSSON</span>
-          </>
-        ) : (
-          <>
-            <div className="w-10 h-10 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-xl mb-1">
-              {sticker.player?.flag}
-            </div>
-            <span className="text-[8px] text-white/90 text-center px-1 font-medium leading-tight max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
-              {sticker.player?.name.split(' ').pop()}
-            </span>
-          </>
-        )}
-
+        {/* Shiny star */}
         {sticker.isShiny && (
-          <span className="absolute bottom-1 right-1 text-[8px] text-yellow-300 font-bold">★</span>
+          <span style={{ position: 'absolute', bottom: '5px', right: '5px', zIndex: 10, fontSize: '10px', color: '#FFD700', textShadow: '0 0 6px rgba(255,215,0,0.8)' }}>★</span>
         )}
       </div>
 
-      {/* Info row */}
-      <div className="px-1.5 py-1">
-        <p className="text-[10px] font-medium text-[var(--color-text-primary)] truncate leading-tight">
+      {/* ── Info row ── */}
+      <div style={{ padding: '6px 8px 7px' }}>
+        <p style={{ fontSize: '9.5px', fontWeight: 600, color: owned ? '#F0F4FF' : '#4A5A7A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px' }}>
           {isBadge ? (sticker.teamName ?? '') : sticker.player?.name}
         </p>
-        <div className="flex justify-between items-center mt-0.5">
-          <span className="text-[8.5px] text-[var(--color-text-tertiary)]">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: '#4A5A7A' }}>
             {isBadge ? 'Écusson' : sticker.player?.position}
           </span>
           {sticker.isShiny && (
-            <span className="text-[7.5px] text-yellow-500 font-semibold">SHINY</span>
+            <span style={{ fontSize: '7px', fontWeight: 700, color: '#C9A227', letterSpacing: '0.5px' }}>SHINY</span>
           )}
         </div>
       </div>

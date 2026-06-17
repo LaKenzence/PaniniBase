@@ -1,33 +1,139 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --red: #E24B4A;
-  --green: #1D9E75;
-  --gold: #C9A227;
+  --gold:        #C9A227;
+  --gold-light:  #E8C84A;
+  --gold-dim:    #7A5F10;
+  --green:       #2ECC71;
+  --green-dim:   #1A5E38;
+  --red:         #E74C3C;
+  --red-dim:     #7A1E18;
+  --blue:        #3498DB;
+
+  --bg-base:     #070C18;
+  --bg-card:     #0D1526;
+  --bg-elevated: #131E35;
+  --bg-hover:    #1A2744;
+  --bg-active:   #1E2F50;
+
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong:  rgba(255,255,255,0.18);
+  --border-gold:    rgba(201,162,39,0.4);
+
+  --text-primary:   #F0F4FF;
+  --text-secondary: #8A9BBF;
+  --text-tertiary:  #4A5A7A;
+  --text-gold:      #C9A227;
+
+  /* Compat aliases */
+  --color-background-primary:   var(--bg-card);
+  --color-background-secondary: var(--bg-elevated);
+  --color-background-tertiary:  var(--bg-base);
+  --color-background-info:      rgba(46,204,113,0.15);
+  --color-text-primary:         var(--text-primary);
+  --color-text-secondary:       var(--text-secondary);
+  --color-text-tertiary:        var(--text-tertiary);
+  --color-text-info:            var(--green);
+  --color-border-primary:       var(--border-strong);
+  --color-border-secondary:     var(--border-default);
+  --color-border-tertiary:      var(--border-subtle);
+  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
   height: 100%;
   overflow: hidden;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Thin scrollbars */
+/* ── Scrollbars ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border-secondary, #ddd); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
+/* ── Animations ── */
+@keyframes holo-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,0); }
+  50%       { box-shadow: 0 0 12px 2px rgba(201,162,39,0.3); }
+}
 
+.slide-in { animation: float-in 0.2s ease forwards; }
 
+/* ── Sticker holo ── */
+.sticker-holo {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.sticker-holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 45%, rgba(201,162,39,0.1) 50%, rgba(255,255,255,0.08) 55%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.sticker-holo:hover::after { opacity: 1; }
+.sticker-holo:hover { transform: translateY(-2px) scale(1.02); }
+
+.sticker-shiny:hover::after {
+  background: linear-gradient(105deg, transparent 20%, rgba(255,215,0,0.15) 35%, rgba(255,100,200,0.1) 45%, rgba(100,200,255,0.12) 55%, rgba(255,215,0,0.15) 65%, transparent 80%);
+  background-size: 200% 200%;
+  animation: holo-shift 2s ease infinite;
+}
+
+/* ── Mobile responsive ── */
+/* Cacher nav desktop sur mobile, afficher bottom nav */
+@media (max-width: 640px) {
+  .desktop-nav { display: none !important; }
+  .desktop-search { display: none !important; }
+  .mobile-nav { display: flex !important; }
+}
+/* Cacher bottom nav sur desktop */
+@media (min-width: 641px) {
+  .mobile-nav { display: none !important; }
+}
+
+/* ── Mobile AlbumView adaptations ── */
+@media (max-width: 640px) {
+  .album-detail-panel { display: none !important; }
+  .album-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)) !important; }
+  .album-header-chips { max-width: 100vw; }
+}
+
+/* ── Mobile AlbumView : detail panel devient bottom sheet ── */
+@media (max-width: 640px) {
+  .album-detail-panel { display: none !important; }
+  .mobile-detail-sheet { display: flex !important; }
+  .mobile-detail-content > div { width: 100% !important; border-left: none !important; max-height: none !important; }
+  .hide-mobile { display: none !important; }
+  .album-grid-mobile { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)) !important; }
+}
+@media (min-width: 641px) {
+  .mobile-detail-sheet { display: none !important; }
+}
