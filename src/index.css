@@ -1,8 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Transitions entre pages (View Transitions API, voir withTransition dans le store) */
+::view-transition-old(root) { animation: vt-out 0.16s ease-in both; }
+::view-transition-new(root) { animation: vt-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes vt-out { to { opacity: 0; transform: scale(0.985); } }
+@keyframes vt-in  { from { opacity: 0; transform: translateY(10px); } }
+
+/* Drapeaux : Windows n'a pas d'emoji drapeaux (il affiche "MX", "BR"…).
+   Cette police ne couvre QUE les drapeaux (unicode-range) et n'est
+   téléchargée que si un drapeau est affiché. */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E007F;
+  src: url('https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1.8/dist/TwemojiCountryFlags.woff2') format('woff2');
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   --gold:        #C9A227;
@@ -27,10 +43,9 @@
 
   --text-primary:   #F0F4FF;
   --text-secondary: #8A9BBF;
-  --text-tertiary:  #4A5A7A;
+  --text-tertiary:  #6B7A9A;
   --text-gold:      #C9A227;
 
-  /* Compat aliases */
   --color-background-primary:   var(--bg-card);
   --color-background-secondary: var(--bg-elevated);
   --color-background-tertiary:  var(--bg-base);
@@ -42,7 +57,7 @@
   --color-border-primary:       var(--border-strong);
   --color-border-secondary:     var(--border-default);
   --color-border-tertiary:      var(--border-subtle);
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Twemoji Country Flags', 'Inter', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,84 +71,452 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Scrollbars ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-/* ── Animations ── */
-@keyframes holo-shift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-@keyframes float-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,0); }
-  50%       { box-shadow: 0 0 12px 2px rgba(201,162,39,0.3); }
-}
+@keyframes holo-shift { 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
+@keyframes float-in { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeIn { from{opacity:0;transform:translateX(-50%) translateY(-4px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,0);} 50%{box-shadow:0 0 12px 2px rgba(201,162,39,0.3);} }
 
 .slide-in { animation: float-in 0.2s ease forwards; }
 
-/* ── Sticker holo ── */
-.sticker-holo {
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+.sticker-holo { position: relative; overflow: hidden; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.sticker-holo::after { content:''; position:absolute; inset:0; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 45%, rgba(201,162,39,0.1) 50%, rgba(255,255,255,0.08) 55%, transparent 70%); opacity:0; transition:opacity 0.2s; pointer-events:none; }
+.sticker-holo:hover::after { opacity: 1; }
+.sticker-holo:hover { transform: translateY(-2px) scale(1.02); }
+.sticker-shiny:hover::after { background: linear-gradient(105deg, transparent 20%, rgba(255,215,0,0.15) 35%, rgba(255,100,200,0.1) 45%, rgba(100,200,255,0.12) 55%, rgba(255,215,0,0.15) 65%, transparent 80%); background-size:200% 200%; animation: holo-shift 2s ease infinite; }
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — règle d'or : .mobile-nav et .mobile-detail-sheet
+   ne s'affichent QUE sous 640px ; le reste de l'UI desktop
+   (nav topbar, panneau détail latéral) ne s'affiche QU'AU-DESSUS.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Par défaut (desktop) : tout ce qui est "mobile only" est caché */
+.mobile-nav,
+.mobile-detail-sheet,
+.mobile-search-btn {
+  display: none;
 }
-.sticker-holo::after {
+
+@media (max-width: 640px) {
+  /* Cache la nav + recherche desktop */
+  .desktop-nav, .desktop-search { display: none !important; }
+  /* Affiche la nav mobile */
+  .mobile-nav { display: flex !important; }
+  .mobile-search-btn { display: flex !important; }
+  /* Filtres rapides de l'album : sur leur propre ligne, pleine largeur */
+  .album-quick-filters { width: 100%; }
+  .album-quick-filters > button { flex: 1; padding: 0 6px !important; }
+  /* Toast au-dessus de la barre de navigation du bas */
+  .album-toast { bottom: 12px !important; }
+  /* Cache le panneau détail latéral desktop */
+  .album-detail-panel { display: none !important; }
+  /* Le bottom-sheet mobile prend le relai pour le détail */
+  .mobile-detail-sheet { display: flex !important; }
+  .mobile-detail-content > div { width: 100% !important; border-left: none !important; max-height: none !important; }
+  /* Grille plus dense sur petit écran */
+  .album-grid-mobile { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)) !important; }
+  /* Cache les indices clavier (pas de clavier sur mobile) */
+  .hide-mobile { display: none !important; }
+}
+
+@media (min-width: 641px) {
+  .mobile-nav { display: none !important; }
+  .mobile-detail-sheet { display: none !important; }
+  .mobile-search-bar { display: none !important; }
+}
+/* L'indice « Ctrl K » prend trop de place quand la recherche est étroite */
+@media (max-width: 1100px) {
+  .search-kbd { display: none; }
+}
+
+/* Tablette / petit laptop : le panneau détail n'apparaît que quand un sticker
+   est sélectionné, pour laisser toute la largeur à la grille le reste du temps */
+@media (max-width: 1100px) {
+  .album-detail-panel--empty { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ACCESSIBILITÉ — focus clavier visible + moins d'animations
+   ══════════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline-offset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TYPOGRAPHIE — échelle cohérente
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --text-2xs: 9px;
+  --text-xs:  10px;
+  --text-sm:  11px;
+  --text-base:12px;
+  --text-md:  13px;
+  --text-lg:  14px;
+  --text-xl:  16px;
+  --text-2xl: 20px;
+  --text-3xl: 26px;
+  --text-4xl: 32px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOUTONS TACTILES — profondeur + état pressé
+   ══════════════════════════════════════════════════════════════ */
+.btn-tactile {
+  transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 6px rgba(0,0,0,0.25);
+}
+.btn-tactile:hover {
+  filter: brightness(1.08);
+}
+.btn-tactile:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3) inset;
+}
+
+.card-tactile {
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+.card-tactile:active {
+  transform: scale(0.98);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STICKER POP — animation quand on coche/décoche
+   ══════════════════════════════════════════════════════════════ */
+@keyframes pop-bounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.12) rotate(-1deg); }
+  60%  { transform: scale(0.96) rotate(0.5deg); }
+  100% { transform: scale(1); }
+}
+.sticker-pop {
+  animation: pop-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes ring-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(46,204,113,0.5); }
+  100% { box-shadow: 0 0 0 10px rgba(46,204,113,0); }
+}
+.sticker-just-owned::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 45%, rgba(201,162,39,0.1) 50%, rgba(255,255,255,0.08) 55%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.2s;
+  border-radius: inherit;
+  animation: ring-pulse 0.6s ease-out;
   pointer-events: none;
 }
-.sticker-holo:hover::after { opacity: 1; }
-.sticker-holo:hover { transform: translateY(-2px) scale(1.02); }
 
-.sticker-shiny:hover::after {
-  background: linear-gradient(105deg, transparent 20%, rgba(255,215,0,0.15) 35%, rgba(255,100,200,0.1) 45%, rgba(100,200,255,0.12) 55%, rgba(255,215,0,0.15) 65%, transparent 80%);
-  background-size: 200% 200%;
-  animation: holo-shift 2s ease infinite;
+/* ══════════════════════════════════════════════════════════════
+   CONFETTI — célébration album 100%
+   ══════════════════════════════════════════════════════════════ */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(420px) rotate(540deg); opacity: 0; }
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  animation: confetti-fall 1.8s ease-in forwards;
+  pointer-events: none;
 }
 
-/* ── Mobile responsive ── */
-/* Cacher nav desktop sur mobile, afficher bottom nav */
+/* ══════════════════════════════════════════════════════════════
+   SKELETON LOADER
+   ══════════════════════════════════════════════════════════════ */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COUVERTURE ALBUM — texture + sash embossé "Panini"
+   ══════════════════════════════════════════════════════════════ */
+.album-cover-textured {
+  position: relative;
+  isolation: isolate;
+}
+/* Grain subtil */
+.album-cover-textured::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+/* Sash diagonal doré façon collection officielle */
+.album-cover-textured .sash {
+  position: absolute;
+  top: 14px;
+  right: -34px;
+  width: 140px;
+  padding: 3px 0;
+  background: linear-gradient(180deg, #E8C84A, #C9A227 60%, #8a6e16);
+  color: #1a1206;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-align: center;
+  transform: rotate(40deg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  z-index: 2;
+  text-transform: uppercase;
+}
+/* Bord embossé (highlight haut + ombre basse) */
+.album-cover-embossed {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    inset 0 -2px 6px rgba(0,0,0,0.35),
+    0 10px 24px rgba(0,0,0,0.45);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ÉTATS VIDES — illustration douce
+   ══════════════════════════════════════════════════════════════ */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.empty-state-icon {
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SPLASH SCREEN
+   ══════════════════════════════════════════════════════════════ */
+@keyframes splash-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.96); }
+  50%      { opacity: 1;   transform: scale(1.04); }
+}
+.splash-logo {
+  animation: splash-pulse 1.4s ease-in-out infinite;
+}
+@keyframes splash-fade-out {
+  to { opacity: 0; visibility: hidden; }
+}
+.splash-exit {
+  animation: splash-fade-out 0.4s ease forwards;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPOVER FILTRES
+   ══════════════════════════════════════════════════════════════ */
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.popover-in {
+  animation: popover-in 0.15s ease forwards;
+  transform-origin: top left;
+}
+
+/* ── StatsView : colonnes empilées sur mobile ── */
 @media (max-width: 640px) {
-  .desktop-nav { display: none !important; }
-  .desktop-search { display: none !important; }
-  .mobile-nav { display: flex !important; }
-}
-/* Cacher bottom nav sur desktop */
-@media (min-width: 641px) {
-  .mobile-nav { display: none !important; }
+  .stats-two-col { grid-template-columns: 1fr !important; }
 }
 
-/* ── Mobile AlbumView adaptations ── */
-@media (max-width: 640px) {
-  .album-detail-panel { display: none !important; }
-  .album-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)) !important; }
-  .album-header-chips { max-width: 100vw; }
+/* ── Spinner de chargement (Suspense, lazy loading des vues) ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+ /* ══════════════════════════════════════════════════════════════
+   HERO — cartes flottantes (3 animations différentes pour
+   éviter un mouvement synchronisé trop mécanique)
+   ══════════════════════════════════════════════════════════════ */
+@keyframes float-a {
+  0%, 100% { transform: var(--base-transform, rotate(-14deg)) translateY(0px); }
+  50%       { transform: var(--base-transform, rotate(-14deg)) translateY(-12px); }
+}
+@keyframes float-b {
+  0%, 100% { transform: var(--base-transform, rotate(10deg)) translateY(0px); }
+  50%       { transform: var(--base-transform, rotate(10deg)) translateY(-16px); }
+}
+@keyframes float-c {
+  0%, 100% { transform: var(--base-transform, rotate(-6deg)) translateY(0px); }
+  50%       { transform: var(--base-transform, rotate(-6deg)) translateY(-10px); }
 }
 
-/* ── Mobile AlbumView : detail panel devient bottom sheet ── */
+/* Cartes flottantes cachées sur petits écrans (<640px) */
 @media (max-width: 640px) {
-  .album-detail-panel { display: none !important; }
-  .mobile-detail-sheet { display: flex !important; }
-  .mobile-detail-content > div { width: 100% !important; border-left: none !important; max-height: none !important; }
-  .hide-mobile { display: none !important; }
-  .album-grid-mobile { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)) !important; }
+  .floating-card { display: none !important; }
 }
-@media (min-width: 641px) {
-  .mobile-detail-sheet { display: none !important; }
+/* Largeur moyenne : seulement les cartes du bord, pour ne pas chevaucher le titre */
+@media (max-width: 1100px) {
+  .floating-card--inner { display: none !important; }
 }
+
+/* ── Accueil mobile : hero compact pour que les albums arrivent vite ── */
+@media (max-width: 640px) {
+  .home-hero { padding: 28px 16px 24px !important; min-height: 0 !important; }
+  .home-eyebrow { margin-bottom: 14px !important; }
+  .home-years { font-size: 18px !important; margin-bottom: 16px !important; }
+  .home-badge { margin-bottom: 20px !important; }
+  /* Stats en grille 2×2 au lieu de 4 lignes */
+  .home-stats { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; }
+  .home-stat { min-width: 0 !important; padding: 12px !important; gap: 10px !important; border-radius: 14px !important; }
+  .home-stat:nth-child(odd):last-child { grid-column: span 2; }
+  .home-stat-icon { width: 34px !important; height: 34px !important; border-radius: 10px !important; }
+  .home-stat-val { font-size: 18px !important; }
+  .home-albums { padding: 20px 16px 32px !important; }
+  /* Accueil collectionneur : cartes empilées */
+  .home-mine { padding: 20px 16px 4px !important; }
+  .home-mine-grid { grid-template-columns: 1fr !important; }
+  /* Mentions légales au-dessus de la barre de navigation du bas */
+  .legal-link { bottom: 70px !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ALBUM CARDS — hover riche (glow coloré + rotation)
+   ══════════════════════════════════════════════════════════════ */
+.album-card-hover {
+  will-change: transform;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STICKER CARDS — brillance améliorée
+   ══════════════════════════════════════════════════════════════ */
+.sticker-shiny {
+  position: relative;
+  overflow: hidden;
+}
+.sticker-shiny::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255,255,255,0.06) 35%,
+    rgba(200,160,40,0.12) 45%,
+    rgba(255,255,255,0.06) 55%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1;
+  pointer-events: none;
+}
+.sticker-shiny:hover::before {
+  opacity: 1;
+  animation: sticker-sheen 1.2s ease-in-out;
+}
+@keyframes sticker-sheen {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* Sticker possédé — halo vert au survol */
+.sticker-owned:hover {
+  box-shadow: 0 0 0 1.5px #2ECC71, 0 4px 16px rgba(46,204,113,0.2) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOUTONS — glow amélioré
+   ══════════════════════════════════════════════════════════════ */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  transition: filter 0.15s, transform 0.08s, box-shadow 0.2s;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%);
+  pointer-events: none;
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 20px rgba(201,162,39,0.35);
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BACKGROUND NOISE — couche de texture subtile globale
+   ══════════════════════════════════════════════════════════════ */
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+#root > * { position: relative; z-index: 1; }
+
+/* ══════════════════════════════════════════════════════════════
+   FONDS EN COUCHES — appliqué à toutes les vues principales
+   ══════════════════════════════════════════════════════════════ */
+.view-bg {
+  background:
+    /* Bruit très léger */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+    /* Grosse lumière floue centrale */
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(20,40,90,0.4) 0%, transparent 70%),
+    /* Base sombre */
+    #070C18;
+  background-size: 200px 200px, 100% 100%, 100% 100%;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOUTONS PRIMAIRES — contraste + glow améliorés
+   ══════════════════════════════════════════════════════════════ */
+.btn-gold {
+  background: linear-gradient(160deg, #E8C84A 0%, #C9A227 60%, #a07d1a 100%) !important;
+  box-shadow: 0 4px 16px rgba(201,162,39,0.3), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  color: #000 !important;
+  font-weight: 800 !important;
+  transition: filter 0.15s, transform 0.08s, box-shadow 0.2s !important;
+}
+.btn-gold:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 24px rgba(201,162,39,0.5), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+.btn-gold:active { transform: scale(0.97) !important; }
+
+.btn-green {
+  background: linear-gradient(160deg, #3de07a 0%, #2ECC71 60%, #1a8a4a 100%) !important;
+  box-shadow: 0 4px 16px rgba(46,204,113,0.3), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+  transition: filter 0.15s, transform 0.08s !important;
+}
+.btn-green:hover { filter: brightness(1.08); }
+.btn-green:active { transform: scale(0.97) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   ICÔNES — taille cohérente 18px par défaut dans les actions
+   ══════════════════════════════════════════════════════════════ */
+.icon-action svg { width: 18px !important; height: 18px !important; }
+.icon-nav    svg { width: 20px !important; height: 20px !important; }
