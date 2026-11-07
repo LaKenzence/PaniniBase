@@ -1,4 +1,8 @@
 import type { Edition, Sticker, Player, StickerCategory } from '../types';
+import { SQUAD_SIZES } from './squads';
+import { CHECKLIST_SIZES } from './checklists';
+import { TEAMS, TEAM_GRADIENTS } from './teams';
+import { PHOTOS, type PlayerPhoto } from './photos';
 
 // ─── Gradient palette ────────────────────────────────────────────────────────
 
@@ -64,9 +68,23 @@ export const EDITIONS: Edition[] = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-// Le numéro affiché = le code Panini tel quel (ex: 'MEX14', 'FWC3').
-// On NE PARSE PAS les chiffres : ça créerait des collisions (MEX1, FRA1, ARG1 -> tous '1').
-const parseStickerNumber = (n: string | number): string | number => n;
+/**
+ * Extrait uniquement les chiffres d'un suffixe ou identifiant.
+ * Exemple : "MEX14" ou "MEX14s" renvoie le nombre 14.
+ * Si aucun chiffre n'est trouvé (ex: "FWC"), renvoie 0.
+ */
+const parseStickerNumber = (n: string | number): number => {
+  if (typeof n === 'number') return n;
+  const match = n.match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+};
+
+// Numéro = position dans l'album ; le code imprimé (« MEX 14 ») est gardé dans `code`
+const withSequentialNumbers = (stickers: Sticker[]): Sticker[] =>
+  stickers.map((s, i) => ({ ...s, number: i + 1, code: prettyCode(s.id.slice(s.id.indexOf('-') + 1)) }));
+
+/** « MEX14 » → « MEX 14 » ; « 00 » reste « 00 ». */
+const prettyCode = (raw: string) => raw.replace(/^([A-Z]+)(\d+)$/, '$1 $2');
 
 const mkPlayer = (
   editionId: string, 
@@ -88,7 +106,7 @@ const mkPlayer = (
   category: isShiny ? 'shiny' : 'player',
   isShiny,
   imageUrl,
-  player: { name, nationality: team, flag, position: pos, jerseyNumber: jersey, club, colKey, playerKey },
+  player: { name, nationality: team, flag, position: pos, jerseyNumber: jersey, club, colKey, playerKey: playerKey ?? slugifyName(name) },
   teamName: team,
 });
 
@@ -122,6 +140,12 @@ const mkSpecial = (
   player: { name, nationality: teamName, flag, colKey },
 });
 
+const slugifyName = (name: string): string =>
+  name
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // enlève les accents
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 // ─── Stickers data ───────────────────────────────────────────────────────────
 
 export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
@@ -299,7 +323,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkBadge('90', 125, 'URSS', '🇷🇺', 'ru'),
     mkPlayer('90', 126, 'Oleg Protasov',     'URSS',     '🇷🇺', 'ru', 'Attaquant', 9, 'Dynamo Kiev'),
     mkBadge('90', 138, 'Irlande', '🇮🇪', 'en'),
-    mkPlayer('90', 139, 'Jack Charlton',     'Irlande',  '🇮🇪', 'en', 'Défenseur', 0, 'Sélectionneur'),
   ],
 
   // ── 1994 États-Unis ───────────────────────────────────────────────────────
@@ -367,7 +390,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('98', 60, 'Ronaldo',            'Brésil',   '🇧🇷', 'br', 'Attaquant', 9,  'Inter Milan','ronaldo', true),
     mkPlayer('98', 61, 'Roberto Carlos',     'Brésil',   '🇧🇷', 'br', 'Défenseur', 6,  'Real Madrid'),
     mkPlayer('98', 62, 'Rivaldo',            'Brésil',   '🇧🇷', 'br', 'Milieu',    10, 'Barcelone'),
-    mkPlayer('98', 63, 'Ronaldinho',         'Brésil',   '🇧🇷', 'br', 'Milieu',    11, 'Gremio',     'ronaldinho'),
     mkPlayer('98', 64, 'Cafu',               'Brésil',   '🇧🇷', 'br', 'Défenseur', 2,  'Roma'),
     mkPlayer('98', 65, 'Bebeto',             'Brésil',   '🇧🇷', 'br', 'Attaquant', 15, 'Vasco'),
     mkPlayer('98', 66, 'Denilson',           'Brésil',   '🇧🇷', 'br', 'Milieu',    7,  'Betis'),
@@ -395,7 +417,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkBadge('98', 419, 'Espagne', '🇪🇸', 'es'),
     mkPlayer('98', 420, 'Raúl González',     'Espagne',  '🇪🇸', 'es', 'Attaquant', 7,  'Real Madrid', 'raul'),
     mkPlayer('98', 421, 'Fernando Hierro',   'Espagne',  '🇪🇸', 'es', 'Défenseur', 6,  'Real Madrid'),
-    mkPlayer('98', 422, 'Pep Guardiola',     'Espagne',  '🇪🇸', 'es', 'Milieu',    4,  'Barcelone'),
   ],
 
   // ── 2002 Corée-Japon ─────────────────────────────────────────────────────
@@ -507,7 +528,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('10', 202, 'Florent Malouda',   'France',   '🇫🇷', 'fr', 'Milieu',    11, 'Chelsea'),
     mkBadge('10', 249, 'Portugal', '🇵🇹', 'pt'),
     mkPlayer('10', 250, 'Cristiano Ronaldo', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 7,  'Real Madrid','cr7', true),
-    mkPlayer('10', 251, 'Nani',              'Portugal', '🇵🇹', 'pt', 'Milieu',    17, 'Man Utd'),
     mkBadge('10', 299, 'Uruguay', '🇺🇾', 'uy'),
     mkPlayer('10', 300, 'Diego Forlán',      'Uruguay',  '🇺🇾', 'uy', 'Attaquant', 10, 'Atlético',  'forlan', true),
     mkPlayer('10', 301, 'Luis Suárez',       'Uruguay',  '🇺🇾', 'uy', 'Attaquant', 9,  'Ajax',       'suarez'),
@@ -552,7 +572,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('14', 252, 'Pepe',              'Portugal', '🇵🇹', 'pt', 'Défenseur', 3,  'Real Madrid'),
     mkBadge('14', 299, 'Colombie', '🇨🇴', 'ma'),
     mkPlayer('14', 300, 'James Rodríguez',   'Colombie', '🇨🇴', 'ma', 'Milieu',    10, 'Monaco',     'james', true),
-    mkPlayer('14', 301, 'Radamel Falcao',    'Colombie', '🇨🇴', 'ma', 'Attaquant', 9,  'Monaco'),
     mkBadge('14', 349, 'Uruguay', '🇺🇾', 'uy'),
     mkPlayer('14', 350, 'Luis Suárez',       'Uruguay',  '🇺🇾', 'uy', 'Attaquant', 9,  'Liverpool',  'suarez', true),
     mkPlayer('14', 351, 'Edinson Cavani',    'Uruguay',  '🇺🇾', 'uy', 'Attaquant', 7,  'PSG',        'cavani'),
@@ -720,7 +739,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('22', 212, 'Cristiano Ronaldo', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 7,  'Man Utd',    'cr7', true),
     mkPlayer('22', 213, 'Bruno Fernandes',   'Portugal', '🇵🇹', 'pt', 'Milieu',    8,  'Man Utd'),
     mkPlayer('22', 214, 'João Félix',        'Portugal', '🇵🇹', 'pt', 'Attaquant', 11, 'Atlético'),
-    mkPlayer('22', 215, 'Diogo Jota',        'Portugal', '🇵🇹', 'pt', 'Attaquant', 10, 'Liverpool'),
     mkPlayer('22', 216, 'Bernardo Silva',    'Portugal', '🇵🇹', 'pt', 'Milieu',    20, 'Man City'),
     mkPlayer('22', 217, 'Rúben Neves',       'Portugal', '🇵🇹', 'pt', 'Milieu',    8,  'Wolverhampton'),
     mkPlayer('22', 218, 'Rafael Leão',       'Portugal', '🇵🇹', 'pt', 'Attaquant', 17, 'AC Milan'),
@@ -764,7 +782,6 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('22', 418, 'Rodri',             'Espagne',  '🇪🇸', 'es', 'Milieu',    16, 'Man City'),
     // Sénégal (461-490)
     mkBadge('22', 461, 'Sénégal', '🇸🇳', 'sn'),
-    mkPlayer('22', 462, 'Sadio Mané',        'Sénégal',  '🇸🇳', 'sn', 'Attaquant', 10, 'Bayern M.',  'mane', true),
     mkPlayer('22', 463, 'Édouard Mendy',     'Sénégal',  '🇸🇳', 'sn', 'Gardien',   1,  'Chelsea'),
     mkPlayer('22', 464, 'Kalidou Koulibaly', 'Sénégal',  '🇸🇳', 'sn', 'Défenseur', 3,  'Napoli'),
     // Équateur (491-510)
@@ -798,7 +815,7 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
   ],
 
   // ── 2026 USA/Canada/Mexique ───────────────────────────────────────────────────
-  '26': [
+  '26': withSequentialNumbers([
     // ── Stickers spéciaux FWC ──
     mkSpecial('26', '00', 'Panini Logo', 'logo', 'We Are Panini', '🌎', 'us'),
     mkSpecial('26', 'FWC1', 'Official Emblem 1', 'special', 'FIFA World Cup 2026', '🌎', 'us'),
@@ -854,25 +871,25 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('26', 'RSA20', 'Oswin Appollis', 'Afrique du Sud', '🇿🇦', 'za', 'Attaquant', 17, 'Polokwane City'),
     // ── Corée du Sud ──
     mkBadge('26', 'KOR1', 'Corée du Sud', '🇰🇷', 'kr'),
-    mkPlayer('26', 'KOR2', 'Hyeon-woo Jo', 'Corée du Sud', '🇰🇷', 'kr', 'Gardien', 21, 'Ulsan HD'),
-    mkPlayer('26', 'KOR3', 'Seung-Gyu Kim', 'Corée du Sud', '🇰🇷', 'kr', 'Gardien', 1, 'Al-Shabab'),
-    mkPlayer('26', 'KOR4', 'Min-jae Kim', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 4, 'Bayern Munich'),
-    mkPlayer('26', 'KOR5', 'Yu-min Cho', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 20, 'Sharjah FC'),
-    mkPlayer('26', 'KOR6', 'Young-woo Seol', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 22, 'Étoile Rouge de Belgrade'),
-    mkPlayer('26', 'KOR7', 'Han-beom Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 2, 'FC Midtjylland'),
-    mkPlayer('26', 'KOR8', 'Tae-seok Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 13, 'Pohang Steelers'),
-    mkPlayer('26', 'KOR9', 'Myung-jae Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 23, 'Ulsan HD'),
-    mkPlayer('26', 'KOR10', 'Jae-sung Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 10, 'Mayence 05'),
-    mkPlayer('26', 'KOR11', 'In-beom Hwang', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 6, 'Feyenoord'),
-    mkPlayer('26', 'KOR12', 'Kang-in Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 18, 'Paris Saint-Germain'),
+    mkPlayer('26', 'KOR2', 'Hyeonwoo Jo', 'Corée du Sud', '🇰🇷', 'kr', 'Gardien', 21, 'Ulsan HD'),
+    mkPlayer('26', 'KOR3', 'Seunggyu Kim', 'Corée du Sud', '🇰🇷', 'kr', 'Gardien', 1, 'Al-Shabab'),
+    mkPlayer('26', 'KOR4', 'Minjae Kim', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 4, 'Bayern Munich'),
+    mkPlayer('26', 'KOR5', 'Yumin Cho', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 20, 'Sharjah FC'),
+    mkPlayer('26', 'KOR6', 'Youngwoo Seol', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 22, 'Étoile Rouge de Belgrade'),
+    mkPlayer('26', 'KOR7', 'Hanbeom Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 2, 'FC Midtjylland'),
+    mkPlayer('26', 'KOR8', 'Taeseok Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 13, 'Pohang Steelers'),
+    mkPlayer('26', 'KOR9', 'Myungjae Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Défenseur', 23, 'Ulsan HD'),
+    mkPlayer('26', 'KOR10', 'Jaesung Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 10, 'Mayence 05'),
+    mkPlayer('26', 'KOR11', 'Inbeom Hwang', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 6, 'Feyenoord'),
+    mkPlayer('26', 'KOR12', 'Kangin Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 18, 'Paris Saint-Germain'),
     mkSpecial('26', 'KOR13', 'Photo Corée du Sud', 'special', 'Corée du Sud', '🇰🇷', 'kr'),
-    mkPlayer('26', 'KOR14', 'Seung-ho Paik', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 8, 'Birmingham City'),
+    mkPlayer('26', 'KOR14', 'Seungho Paik', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 8, 'Birmingham City'),
     mkPlayer('26', 'KOR15', 'Jens Castrop', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 15, 'FC Nuremberg'),
-    mkPlayer('26', 'KOR16', 'Dong-yeong Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 25, 'Suwon FC'),
-    mkPlayer('26', 'KOR17', 'Gue-sung Cho', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 9, 'FC Midtjylland'),
-    mkPlayer('26', 'KOR18', 'Heung-min Son', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 7, 'Tottenham Hotspur', 'son'),
-    mkPlayer('26', 'KOR19', 'Hee-chan Hwang', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 11, 'Wolverhampton'),
-    mkPlayer('26', 'KOR20', 'Hyeon-Gyu Oh', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 19, 'KRC Genk'),
+    mkPlayer('26', 'KOR16', 'Donggyeong Lee', 'Corée du Sud', '🇰🇷', 'kr', 'Milieu', 25, 'Suwon FC'),
+    mkPlayer('26', 'KOR17', 'Guesung Cho', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 9, 'FC Midtjylland'),
+    mkPlayer('26', 'KOR18', 'Heungmin Son', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 7, 'Tottenham Hotspur', 'son'),
+    mkPlayer('26', 'KOR19', 'Heechan Hwang', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 11, 'Wolverhampton'),
+    mkPlayer('26', 'KOR20', 'Hyeongyu Oh', 'Corée du Sud', '🇰🇷', 'kr', 'Attaquant', 19, 'KRC Genk'),
     // ── Tchéquie ──
     mkBadge('26', 'CZE1', 'Tchéquie', '🇨🇿', 'cs'),
     mkPlayer('26', 'CZE2', 'Matej Kovar', 'Tchéquie', '🇨🇿', 'cs', 'Gardien', 1, 'Bayer Leverkusen'),
@@ -895,8 +912,8 @@ export const STICKERS_BY_EDITION: Record<string, Sticker[]> = {
     mkPlayer('26', 'CZE19', 'Adam Hlozek', 'Tchéquie', '🇨🇿', 'cs', 'Attaquant', 9, 'TSG Hoffenheim'),
     mkPlayer('26', 'CZE20', 'Patrik Schick', 'Tchéquie', '🇨🇿', 'cs', 'Attaquant', 10, 'Bayer Leverkusen'),
 mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
-    mkPlayer('26', 'CAN2', 'Dayne St.Clair', 'Canada', '🇨🇦', 'ca', 'Gardien', 1, 'Minnesota United'),
-    mkPlayer('26', 'CAN3', 'Alphonso Davies', 'Canada', '🇨🇦', 'ca', 'Défenseur', 19, 'Bayern Munich'),
+    mkPlayer('26', 'CAN2', 'Dayne St. Clair', 'Canada', '🇨🇦', 'ca', 'Gardien', 1, 'Minnesota United'),
+    mkPlayer('26', 'CAN3', 'Alphonso Davies', 'Canada', '🇨🇦', 'ca', 'Défenseur', 19, 'Bayern Munich', 'davies'),
     mkPlayer('26', 'CAN4', 'Alistair Johnston', 'Canada', '🇨🇦', 'ca', 'Défenseur', 2, 'Celtic Glasgow'),
     mkPlayer('26', 'CAN5', 'Samuel Adekugbe', 'Canada', '🇨🇦', 'ca', 'Défenseur', 3, 'Vancouver Whitecaps'),
     mkPlayer('26', 'CAN6', 'Richie Laryea', 'Canada', '🇨🇦', 'ca', 'Défenseur', 22, 'Toronto FC'),
@@ -915,26 +932,26 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'CAN19', 'Cyle Larin', 'Canada', '🇨🇦', 'ca', 'Attaquant', 9, 'Majorque'),
     mkPlayer('26', 'CAN20', 'Jonathan David', 'Canada', '🇨🇦', 'ca', 'Attaquant', 10, 'Lille OSC'),
 // ── Bosnia and Herzegovina ──
-    mkBadge('26', 'BIH1', 'Bosnia and Herzegovina', '🇧🇦', 'ba'),
-    mkPlayer('26', 'BIH2', 'Nikola Vasilj', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Gardien', 1, 'Sankt Pauli'),
-    mkPlayer('26', 'BIH3', 'Amer Dedic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Défenseur', 2, 'Red Bull Salzbourg'),
-    mkPlayer('26', 'BIH4', 'Sead Kolasinac', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Défenseur', 5, 'Atalanta Bergame'),
-    mkPlayer('26', 'BIH5', 'Tarik Muharemovic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Défenseur', 3, 'Sassuolo'),
-    mkPlayer('26', 'BIH6', 'Nihad Mujakic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Défenseur', 16, 'Partizan Belgrade'),
-    mkPlayer('26', 'BIH7', 'Nikola Katic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Défenseur', 4, 'FC Zürich'),
-    mkPlayer('26', 'BIH8', 'Amir Hadziahmetovic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 21, 'Çaykur Rizespor'),
-    mkPlayer('26', 'BIH9', 'Benjamin Tahirovic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 8, 'Ajax Amsterdam'),
-    mkPlayer('26', 'BIH10', 'Armin Gigovic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 18, 'Holstein Kiel'),
-    mkPlayer('26', 'BIH11', 'Ivan Sunjic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 17, 'Paphos FC'),
-    mkPlayer('26', 'BIH12', 'Ivan Basic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 10, 'Orenbourg'),
-    mkSpecial('26', 'BIH13', 'Photo Bosnia and Herzegovina', 'special', 'Bosnia and Herzegovina', '🇧🇦', 'ba'),
-    mkPlayer('26', 'BIH14', 'Dzenis Burnic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 7, 'Karlsruher SC'),
-    mkPlayer('26', 'BIH15', 'Esmir Bajraktarevic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Attaquant', 14, 'New England Revolution'),
-    mkPlayer('26', 'BIH16', 'Amar Memic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Milieu', 23, 'Bravo'),
-    mkPlayer('26', 'BIH17', 'Ermedin Demirovic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Attaquant', 11, 'VfB Stuttgart'),
-    mkPlayer('26', 'BIH18', 'Edin Dzeko', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Attaquant', 11, 'Fenerbahçe', 'dzeko'),
-    mkPlayer('26', 'BIH19', 'Samed Bazdar', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Attaquant', 19, 'Saragosse'),
-    mkPlayer('26', 'BIH20', 'Haris Tabakovic', 'Bosnia and Herzegovina', '🇧🇦', 'ba', 'Attaquant', 9, 'Hoffenheim'),
+    mkBadge('26', 'BIH1', 'Bosnie-Herzégovine', '🇧🇦', 'ba'),
+    mkPlayer('26', 'BIH2', 'Nikola Vasilj', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Gardien', 1, 'Sankt Pauli'),
+    mkPlayer('26', 'BIH3', 'Amar Dedić', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Défenseur', 2, 'Red Bull Salzbourg'),
+    mkPlayer('26', 'BIH4', 'Sead Kolasinac', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Défenseur', 5, 'Atalanta Bergame'),
+    mkPlayer('26', 'BIH5', 'Tarik Muharemovic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Défenseur', 3, 'Sassuolo'),
+    mkPlayer('26', 'BIH6', 'Nihad Mujakic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Défenseur', 16, 'Partizan Belgrade'),
+    mkPlayer('26', 'BIH7', 'Nikola Katic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Défenseur', 4, 'FC Zürich'),
+    mkPlayer('26', 'BIH8', 'Amir Hadziahmetovic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 21, 'Çaykur Rizespor'),
+    mkPlayer('26', 'BIH9', 'Benjamin Tahirovic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 8, 'Ajax Amsterdam'),
+    mkPlayer('26', 'BIH10', 'Armin Gigovic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 18, 'Holstein Kiel'),
+    mkPlayer('26', 'BIH11', 'Ivan Sunjic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 17, 'Paphos FC'),
+    mkPlayer('26', 'BIH12', 'Ivan Basic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 10, 'Orenbourg'),
+    mkSpecial('26', 'BIH13', 'Photo Bosnie-Herzégovine', 'special', 'Bosnie-Herzégovine', '🇧🇦', 'ba'),
+    mkPlayer('26', 'BIH14', 'Dzenis Burnic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 7, 'Karlsruher SC'),
+    mkPlayer('26', 'BIH15', 'Esmir Bajraktarevic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Attaquant', 14, 'New England Revolution'),
+    mkPlayer('26', 'BIH16', 'Amar Memic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Milieu', 23, 'Bravo'),
+    mkPlayer('26', 'BIH17', 'Ermedin Demirovic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Attaquant', 11, 'VfB Stuttgart'),
+    mkPlayer('26', 'BIH18', 'Edin Dzeko', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Attaquant', 11, 'Fenerbahçe', 'dzeko'),
+    mkPlayer('26', 'BIH19', 'Samed Bazdar', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Attaquant', 19, 'Saragosse'),
+    mkPlayer('26', 'BIH20', 'Haris Tabakovic', 'Bosnie-Herzégovine', '🇧🇦', 'ba', 'Attaquant', 9, 'Hoffenheim'),
 // ── Qatar ──
     mkBadge('26', 'QAT1', 'Qatar', '🇶🇦', 'qa'),
     mkPlayer('26', 'QAT2', 'Meshaal Barsham', 'Qatar', '🇶🇦', 'qa', 'Gardien', 22, 'Al-Sadd'),
@@ -944,17 +961,17 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'QAT6', 'Boualem Khoukhi', 'Qatar', '🇶🇦', 'qa', 'Défenseur', 16, 'Al-Sadd'),
     mkPlayer('26', 'QAT7', 'Pedro Miguel', 'Qatar', '🇶🇦', 'qa', 'Défenseur', 2, 'Al-Sadd'),
     mkPlayer('26', 'QAT8', 'Tarek Salman', 'Qatar', '🇶🇦', 'qa', 'Défenseur', 5, 'Al-Sadd'),
-    mkPlayer('26', 'QAT9', 'Mohamed Al-Mannai', 'Qatar', '🇶🇦', 'qa', 'Milieu', 15, 'Al-Markhiya'),
+    mkPlayer('26', 'QAT9', 'Mohammed Mannai', 'Qatar', '🇶🇦', 'qa', 'Milieu', 15, 'Al-Markhiya'),
     mkPlayer('26', 'QAT10', 'Karim Boudiaf', 'Qatar', '🇶🇦', 'qa', 'Milieu', 12, 'Al-Duhail'),
     mkPlayer('26', 'QAT11', 'Assim Madibo', 'Qatar', '🇶🇦', 'qa', 'Milieu', 23, 'Al-Gharafa'),
-    mkPlayer('26', 'QAT12', 'Ahmed Fatehi', 'Qatar', '🇶🇦', 'qa', 'Milieu', 6, 'Al-Arabi'),
+    mkPlayer('26', 'QAT12', 'Hamed Fatehi', 'Qatar', '🇶🇦', 'qa', 'Milieu', 6, 'Al-Arabi'),
     mkSpecial('26', 'QAT13', 'Photo Qatar', 'special', 'Qatar', '🇶🇦', 'qa'),
     mkPlayer('26', 'QAT14', 'Mohammed Waad', 'Qatar', '🇶🇦', 'qa', 'Milieu', 4, 'Al-Sadd'),
     mkPlayer('26', 'QAT15', 'Abdulaziz Hatem', 'Qatar', '🇶🇦', 'qa', 'Milieu', 6, 'Al-Rayyan'),
     mkPlayer('26', 'QAT16', 'Hassan Al-Haydos', 'Qatar', '🇶🇦', 'qa', 'Milieu', 10, 'Al-Sadd'),
     mkPlayer('26', 'QAT17', 'Edmilson Junior', 'Qatar', '🇶🇦', 'qa', 'Attaquant', 7, 'Al-Duhail'),
     mkPlayer('26', 'QAT18', 'Akram Hassan Afif', 'Qatar', '🇶🇦', 'qa', 'Attaquant', 11, 'Al-Sadd'),
-    mkPlayer('26', 'QAT19', 'Ahmed Al Ganehi', 'Qatar', '🇶🇦', 'qa', 'Attaquant', 17, 'Al-Gharafa'),
+    mkPlayer('26', 'QAT19', 'Ahmed Al-Ganehi', 'Qatar', '🇶🇦', 'qa', 'Attaquant', 17, 'Al-Gharafa'),
     mkPlayer('26', 'QAT20', 'Almoez Ali', 'Qatar', '🇶🇦', 'qa', 'Attaquant', 19, 'Al-Duhail'),
     // ── Suisse ──
     mkBadge('26', 'SUI1', 'Suisse', '🇨🇭', 'ch'),
@@ -1002,7 +1019,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkBadge('26', 'MAR1', 'Maroc', '🇲🇦', 'ma'),
     mkPlayer('26', 'MAR2', 'Yassine Bounou', 'Maroc', '🇲🇦', 'ma', 'Gardien', 1, 'Al-Hilal'),
     mkPlayer('26', 'MAR3', 'Munir El Kajoui', 'Maroc', '🇲🇦', 'ma', 'Gardien', 12, 'RS Berkane'),
-    mkPlayer('26', 'MAR4', 'Achraf Hakimi', 'Maroc', '🇲🇦', 'ma', 'Défenseur', 2, 'Paris Saint-Germain'),
+    mkPlayer('26', 'MAR4', 'Achraf Hakimi', 'Maroc', '🇲🇦', 'ma', 'Défenseur', 2, 'Paris Saint-Germain', 'hakimi'),
     mkPlayer('26', 'MAR5', 'Noussair Mazraoui', 'Maroc', '🇲🇦', 'ma', 'Défenseur', 3, 'Manchester United'),
     mkPlayer('26', 'MAR6', 'Nayef Aguerd', 'Maroc', '🇲🇦', 'ma', 'Défenseur', 5, 'Real Sociedad'),
     mkPlayer('26', 'MAR7', 'Romain Saïss', 'Maroc', '🇲🇦', 'ma', 'Défenseur', 6, 'Al-Sadd'),
@@ -1020,26 +1037,26 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'MAR19', 'Brahim Diaz', 'Maroc', '🇲🇦', 'ma', 'Attaquant', 10, 'Real Madrid'),
     mkPlayer('26', 'MAR20', 'Ayoub El Kaabi', 'Maroc', '🇲🇦', 'ma', 'Attaquant', 14, 'Olympiakos'),
     // ── Haiti ──
-    mkBadge('26', 'HAI1', 'Haiti', '🇭🇹', 'ht'),
-    mkPlayer('26', 'HAI2', 'Johny Placide', 'Haiti', '🇭🇹', 'ht', 'Gardien', 1, 'Bastia'),
-    mkPlayer('26', 'HAI3', 'Carlens Arcus', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 2, 'Angers SCO'),
-    mkPlayer('26', 'HAI4', 'Martin Expérience', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 17, 'Nancy'),
-    mkPlayer('26', 'HAI5', 'Jean-Kevin Duverne', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 22, 'FC Nantes'),
-    mkPlayer('26', 'HAI6', 'Ricardo Adé', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 4, 'LDU Quito'),
-    mkPlayer('26', 'HAI7', 'Duke Lacroix', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 3, 'Colorado Springs Switchbacks'),
-    mkPlayer('26', 'HAI8', 'Garven Metusala', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 6, 'FC Forge'),
-    mkPlayer('26', 'HAI9', 'Hannes Delcroix', 'Haiti', '🇭🇹', 'ht', 'Défenseur', 5, 'Burnley'),
-    mkPlayer('26', 'HAI10', 'Leverton Pierre', 'Haiti', '🇭🇹', 'ht', 'Milieu', 19, 'Châteauroux'),
-    mkPlayer('26', 'HAI11', 'Danley Jean Jacques', 'Haiti', '🇭🇹', 'ht', 'Milieu', 14, 'Portland Timbers'),
-    mkPlayer('26', 'HAI12', 'Jean-Ricner Bellegarde', 'Haiti', '🇭🇹', 'ht', 'Milieu', 8, 'Wolverhampton'),
-    mkSpecial('26', 'HAI13', 'Photo Haiti', 'special', 'Haiti', '🇭🇹', 'ht'),
-    mkPlayer('26', 'HAI14', 'Christopher Attys', 'Haiti', '🇭🇹', 'ht', 'Milieu', 18, 'Triestina'),
-    mkPlayer('26', 'HAI15', 'Derrick Etienne Jr', 'Haiti', '🇭🇹', 'ht', 'Milieu', 11, 'Toronto FC'),
-    mkPlayer('26', 'HAI16', 'Josue Casimir', 'Haiti', '🇭🇹', 'ht', 'Attaquant', 7, 'Le Havre AC'),
-    mkPlayer('26', 'HAI17', 'Ruben Providence', 'Haiti', '🇭🇹', 'ht', 'Attaquant', 15, 'Alverca'),
-    mkPlayer('26', 'HAI18', 'Duckens Nazon', 'Haiti', '🇭🇹', 'ht', 'Attaquant', 9, 'Kayserispor'),
-    mkPlayer('26', 'HAI19', 'Louicius Deedson', 'Haiti', '🇭🇹', 'ht', 'Attaquant', 20, 'OB Odense'),
-    mkPlayer('26', 'HAI20', 'Frantzdy Pierrot', 'Haiti', '🇭🇹', 'ht', 'Attaquant', 20, 'AEK Athènes'),
+    mkBadge('26', 'HAI1', 'Haïti', '🇭🇹', 'ht'),
+    mkPlayer('26', 'HAI2', 'Johny Placide', 'Haïti', '🇭🇹', 'ht', 'Gardien', 1, 'Bastia'),
+    mkPlayer('26', 'HAI3', 'Carlens Arcus', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 2, 'Angers SCO'),
+    mkPlayer('26', 'HAI4', 'Martin Expérience', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 17, 'Nancy'),
+    mkPlayer('26', 'HAI5', 'Jean-Kevin Duverne', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 22, 'FC Nantes'),
+    mkPlayer('26', 'HAI6', 'Ricardo Adé', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 4, 'LDU Quito'),
+    mkPlayer('26', 'HAI7', 'Duke Lacroix', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 3, 'Colorado Springs Switchbacks'),
+    mkPlayer('26', 'HAI8', 'Garven Metusala', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 6, 'FC Forge'),
+    mkPlayer('26', 'HAI9', 'Hannes Delcroix', 'Haïti', '🇭🇹', 'ht', 'Défenseur', 5, 'Burnley'),
+    mkPlayer('26', 'HAI10', 'Leverton Pierre', 'Haïti', '🇭🇹', 'ht', 'Milieu', 19, 'Châteauroux'),
+    mkPlayer('26', 'HAI11', 'Danley Jean Jacques', 'Haïti', '🇭🇹', 'ht', 'Milieu', 14, 'Portland Timbers'),
+    mkPlayer('26', 'HAI12', 'Jean-Ricner Bellegarde', 'Haïti', '🇭🇹', 'ht', 'Milieu', 8, 'Wolverhampton'),
+    mkSpecial('26', 'HAI13', 'Photo Haïti', 'special', 'Haïti', '🇭🇹', 'ht'),
+    mkPlayer('26', 'HAI14', 'Christopher Attys', 'Haïti', '🇭🇹', 'ht', 'Milieu', 18, 'Triestina'),
+    mkPlayer('26', 'HAI15', 'Derrick Etienne Jr.', 'Haïti', '🇭🇹', 'ht', 'Milieu', 11, 'Toronto FC'),
+    mkPlayer('26', 'HAI16', 'Josue Casimir', 'Haïti', '🇭🇹', 'ht', 'Attaquant', 7, 'Le Havre AC'),
+    mkPlayer('26', 'HAI17', 'Ruben Providence', 'Haïti', '🇭🇹', 'ht', 'Attaquant', 15, 'Alverca'),
+    mkPlayer('26', 'HAI18', 'Duckens Nazon', 'Haïti', '🇭🇹', 'ht', 'Attaquant', 9, 'Kayserispor'),
+    mkPlayer('26', 'HAI19', 'Louicius Deedson', 'Haïti', '🇭🇹', 'ht', 'Attaquant', 20, 'OB Odense'),
+    mkPlayer('26', 'HAI20', 'Frantzdy Pierrot', 'Haïti', '🇭🇹', 'ht', 'Attaquant', 20, 'AEK Athènes'),
     // ── Écosse ──
     mkBadge('26', 'SCO1', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc'),
     mkPlayer('26', 'SCO2', 'Angus Gunn', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc', 'Gardien', 1, 'Norwich City'),
@@ -1060,7 +1077,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'SCO17', 'John McGinn', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc', 'Milieu', 7, 'Aston Villa'),
     mkPlayer('26', 'SCO18', 'Lyndon Dykes', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc', 'Attaquant', 9, 'Birmingham City'),
     mkPlayer('26', 'SCO19', 'Che Adams', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc', 'Attaquant', 10, 'Torino'),
-    mkPlayer('26', 'SCO20', 'Ben Doak', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc', 'Attaquant', 17, 'Middlesbrough'),
+    mkPlayer('26', 'SCO20', 'Ben Gannon-Doak', 'Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'sc', 'Attaquant', 17, 'Middlesbrough'),
     // ── États-Unis ──
     mkBadge('26', 'USA1', 'États-Unis', '🇺🇸', 'us'),
     mkPlayer('26', 'USA2', 'Matt Freese', 'États-Unis', '🇺🇸', 'us', 'Gardien', 1, 'New York City FC'),
@@ -1072,7 +1089,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'USA8', 'Tyler Adams', 'États-Unis', '🇺🇸', 'us', 'Milieu', 4, 'Bournemouth'),
     mkPlayer('26', 'USA9', 'Tanner Tessmann', 'États-Unis', '🇺🇸', 'us', 'Milieu', 14, 'Olympique Lyonnais'),
     mkPlayer('26', 'USA10', 'Weston McKennie', 'États-Unis', '🇺🇸', 'us', 'Milieu', 8, 'Juventus'),
-    mkPlayer('26', 'USA11', 'Christian Roldan', 'États-Unis', '🇺🇸', 'us', 'Milieu', 16, 'Seattle Sounders'),
+    mkPlayer('26', 'USA11', 'Cristian Roldan', 'États-Unis', '🇺🇸', 'us', 'Milieu', 16, 'Seattle Sounders'),
     mkPlayer('26', 'USA12', 'Timothy Weah', 'États-Unis', '🇺🇸', 'us', 'Attaquant', 22, 'Juventus'),
     mkSpecial('26', 'USA13', 'Photo États-Unis', 'special', 'États-Unis', '🇺🇸', 'us'),
     mkPlayer('26', 'USA14', 'Diego Luna', 'États-Unis', '🇺🇸', 'us', 'Milieu', 26, 'Real Salt Lake'),
@@ -1126,7 +1143,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'AUS20', 'Mohamed Touré', 'Australie', '🇦🇺', 'au', 'Attaquant', 17, 'Randers FC'),
     // ── Türkiye ──
     mkBadge('26', 'TUR1', 'Türkiye', '🇹🇷', 'tr'),
-    mkPlayer('26', 'TUR2', 'Ugurcan Cakir', 'Türkiye', '🇹🇷', 'tr', 'Gardien', 1, 'Trabzonspor'),
+    mkPlayer('26', 'TUR2', 'Uğurcan Çakır', 'Türkiye', '🇹🇷', 'tr', 'Gardien', 1, 'Trabzonspor'),
     mkPlayer('26', 'TUR3', 'Mert Muldur', 'Türkiye', '🇹🇷', 'tr', 'Défenseur', 18, 'Fenerbahçe'),
     mkPlayer('26', 'TUR4', 'Zeki Celik', 'Türkiye', '🇹🇷', 'tr', 'Défenseur', 2, 'AS Rome'),
     mkPlayer('26', 'TUR5', 'Abdulkerim Bardakci', 'Türkiye', '🇹🇷', 'tr', 'Défenseur', 14, 'Galatasaray'),
@@ -1142,9 +1159,9 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'TUR15', 'Irfan Can Kahveci', 'Türkiye', '🇹🇷', 'tr', 'Milieu', 17, 'Fenerbahçe'),
     mkPlayer('26', 'TUR16', 'Yunus Akgun', 'Türkiye', '🇹🇷', 'tr', 'Milieu', 7, 'Galatasaray'),
     mkPlayer('26', 'TUR17', 'Can Uzun', 'Türkiye', '🇹🇷', 'tr', 'Milieu', 11, 'Eintracht Francfort'),
-    mkPlayer('26', 'TUR18', 'Baris Alper Yilmaz', 'Türkiye', '🇹🇷', 'tr', 'Attaquant', 21, 'Galatasaray'),
+    mkPlayer('26', 'TUR18', 'Barış Alper Yılmaz', 'Türkiye', '🇹🇷', 'tr', 'Attaquant', 21, 'Galatasaray'),
     mkPlayer('26', 'TUR19', 'Kerem Akturkoglu', 'Türkiye', '🇹🇷', 'tr', 'Attaquant', 7, 'Benfica Lisbonne'),
-    mkPlayer('26', 'TUR20', 'Kenan Yildiz', 'Türkiye', '🇹🇷', 'tr', 'Attaquant', 19, 'Juventus'),
+    mkPlayer('26', 'TUR20', 'Kenan Yıldız', 'Türkiye', '🇹🇷', 'tr', 'Attaquant', 19, 'Juventus'),
     // ── Allemagne ──
     mkBadge('26', 'GER1', 'Allemagne', '🇩🇪', 'de'),
     mkPlayer('26', 'GER2', 'Marc-André ter Stegen', 'Allemagne', '🇩🇪', 'de', 'Gardien', 1, 'FC Barcelone'),
@@ -1156,11 +1173,11 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'GER8', 'Ridle Baku', 'Allemagne', '🇩🇪', 'de', 'Défenseur', 20, 'VfL Wolfsbourg'),
     mkPlayer('26', 'GER9', 'Maximilian Mittelstädt', 'Allemagne', '🇩🇪', 'de', 'Défenseur', 22, 'VfB Stuttgart'),
     mkPlayer('26', 'GER10', 'Joshua Kimmich', 'Allemagne', '🇩🇪', 'de', 'Milieu', 6, 'Bayern Munich'),
-    mkPlayer('26', 'GER11', 'Florian Wirtz', 'Allemagne', '🇩🇪', 'de', 'Milieu', 17, 'Bayer Leverkusen'),
+    mkPlayer('26', 'GER11', 'Florian Wirtz', 'Allemagne', '🇩🇪', 'de', 'Milieu', 17, 'Bayer Leverkusen', 'wirtz'),
     mkPlayer('26', 'GER12', 'Felix Nmecha', 'Allemagne', '🇩🇪', 'de', 'Milieu', 18, 'Borussia Dortmund'),
     mkSpecial('26', 'GER13', 'Photo Allemagne', 'special', 'Allemagne', '🇩🇪', 'de'),
     mkPlayer('26', 'GER14', 'Leon Goretzka', 'Allemagne', '🇩🇪', 'de', 'Milieu', 8, 'Bayern Munich'),
-    mkPlayer('26', 'GER15', 'Jamal Musiala', 'Allemagne', '🇩🇪', 'de', 'Milieu', 10, 'Bayern Munich'),
+    mkPlayer('26', 'GER15', 'Jamal Musiala', 'Allemagne', '🇩🇪', 'de', 'Milieu', 10, 'Bayern Munich', 'musiala'),
     mkPlayer('26', 'GER16', 'Serge Gnabry', 'Allemagne', '🇩🇪', 'de', 'Attaquant', 20, 'Bayern Munich'),
     mkPlayer('26', 'GER17', 'Kai Havertz', 'Allemagne', '🇩🇪', 'de', 'Attaquant', 7, 'Arsenal'),
     mkPlayer('26', 'GER18', 'Leroy Sané', 'Allemagne', '🇩🇪', 'de', 'Attaquant', 19, 'Bayern Munich'),
@@ -1205,7 +1222,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'CIV15', 'Amad Diallo', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 15, 'Manchester United'),
     mkPlayer('26', 'CIV16', 'Sébastien Haller', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 22, 'CD Leganés'),
     mkPlayer('26', 'CIV17', 'Simon Adingra', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 24, 'Brighton'),
-    mkPlayer('26', 'CIV18', 'Oumar Diomandé', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 11, 'ASEC Mimosas'),
+    mkPlayer('26', 'CIV18', 'Yan Diomande', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 11, 'ASEC Mimosas'),
     mkPlayer('26', 'CIV19', 'Evann Guessand', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 9, 'OGC Nice'),
     mkPlayer('26', 'CIV20', 'Oumar Diakité', 'Côte d\'Ivoire', '🇨🇮', 'ci', 'Attaquant', 14, 'Stade de Reims'),
     // ── Équateur ──
@@ -1233,7 +1250,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     // ── Pays-Bas ──
     mkBadge('26', 'NED1', 'Pays-Bas', '🇳🇱', 'nl'),
     mkPlayer('26', 'NED2', 'Bart Verbruggen', 'Pays-Bas', '🇳🇱', 'nl', 'Gardien', 1, 'Brighton'),
-    mkPlayer('26', 'NED3', 'Virgil van Dijk', 'Pays-Bas', '🇳🇱', 'nl', 'Défenseur', 4, 'Liverpool'),
+    mkPlayer('26', 'NED3', 'Virgil van Dijk', 'Pays-Bas', '🇳🇱', 'nl', 'Défenseur', 4, 'Liverpool', 'vandijk'),
     mkPlayer('26', 'NED4', 'Micky van de Ven', 'Pays-Bas', '🇳🇱', 'nl', 'Défenseur', 15, 'Tottenham Hotspur'),
     mkPlayer('26', 'NED5', 'Jurriën Timber', 'Pays-Bas', '🇳🇱', 'nl', 'Défenseur', 2, 'Arsenal'),
     mkPlayer('26', 'NED6', 'Denzel Dumfries', 'Pays-Bas', '🇳🇱', 'nl', 'Défenseur', 22, 'Inter Milan'),
@@ -1245,7 +1262,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'NED12', 'Teun Koopmeiners', 'Pays-Bas', '🇳🇱', 'nl', 'Milieu', 20, 'Juventus'),
     mkSpecial('26', 'NED13', 'Photo Pays-Bas', 'special', 'Pays-Bas', '🇳🇱', 'nl'),
     mkPlayer('26', 'NED14', 'Frenkie de Jong', 'Pays-Bas', '🇳🇱', 'nl', 'Milieu', 21, 'FC Barcelone'),
-    mkPlayer('26', 'NED15', 'Xavi Simons', 'Pays-Bas', '🇳🇱', 'nl', 'Milieu', 7, 'RB Leipzig'),
+    mkPlayer('26', 'NED15', 'Xavi Simons', 'Pays-Bas', '🇳🇱', 'nl', 'Milieu', 7, 'RB Leipzig', 'xavisimons'),
     mkPlayer('26', 'NED16', 'Justin Kluivert', 'Pays-Bas', '🇳🇱', 'nl', 'Milieu', 18, 'Bournemouth'),
     mkPlayer('26', 'NED17', 'Memphis Depay', 'Pays-Bas', '🇳🇱', 'nl', 'Attaquant', 10, 'Corinthians'),
     mkPlayer('26', 'NED18', 'Donyell Malen', 'Pays-Bas', '🇳🇱', 'nl', 'Attaquant', 18, 'Borussia Dortmund'),
@@ -1254,7 +1271,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     // ── Japon ──
     mkBadge('26', 'JPN1', 'Japon', '🇯🇵', 'jp'),
     mkPlayer('26', 'JPN2', 'Zion Suzuki', 'Japon', '🇯🇵', 'jp', 'Gardien', 1, 'Parme'),
-    mkPlayer('26', 'JPN3', 'Henry Hiroki Mochizuki', 'Japon', '🇯🇵', 'jp', 'Défenseur', 21, 'Machida Zelvia'),
+    mkPlayer('26', 'JPN3', 'Henry Heroki Mochizuki', 'Japon', '🇯🇵', 'jp', 'Défenseur', 21, 'Machida Zelvia'),
     mkPlayer('26', 'JPN4', 'Ayumu Seko', 'Japon', '🇯🇵', 'jp', 'Défenseur', 4, 'Grasshopper Zurich'),
     mkPlayer('26', 'JPN5', 'Junnosuke Suzuki', 'Japon', '🇯🇵', 'jp', 'Défenseur', 2, 'Shonan Bellmare'),
     mkPlayer('26', 'JPN6', 'Shogo Taniguchi', 'Japon', '🇯🇵', 'jp', 'Défenseur', 3, 'Sint-Truiden'),
@@ -1274,7 +1291,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'JPN20', 'Ayase Ueda', 'Japon', '🇯🇵', 'jp', 'Attaquant', 9, 'Feyenoord Rotterdam'),
     // ── Suède ──
     mkBadge('26', 'SWE1', 'Suède', '🇸🇪', 'se'),
-    mkPlayer('26', 'SWE2', 'Victor Johansson', 'Suède', '🇸🇪', 'se', 'Gardien', 1, 'Stoke City'),
+    mkPlayer('26', 'SWE2', 'Viktor Johansson', 'Suède', '🇸🇪', 'se', 'Gardien', 1, 'Stoke City'),
     mkPlayer('26', 'SWE3', 'Isak Hien', 'Suède', '🇸🇪', 'se', 'Défenseur', 4, 'Atalanta Bergame'),
     mkPlayer('26', 'SWE4', 'Gabriel Gudmundsson', 'Suède', '🇸🇪', 'se', 'Défenseur', 5, 'Lille OSC'),
     mkPlayer('26', 'SWE5', 'Emil Holm', 'Suède', '🇸🇪', 'se', 'Défenseur', 2, 'Bologne'),
@@ -1329,7 +1346,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'BEL12', 'Alexis Saelemaekers', 'Belgique', '🇧🇪', 'be', 'Milieu', 17, 'AS Rome'),
     mkSpecial('26', 'BEL13', 'Photo Belgique', 'special', 'Belgique', '🇧🇪', 'be'),
     mkPlayer('26', 'BEL14', 'Hans Vanaken', 'Belgique', '🇧🇪', 'be', 'Milieu', 14, 'Club Bruges'),
-    mkPlayer('26', 'BEL15', 'Kevin De Bruyne', 'Belgique', '🇧🇪', 'be', 'Milieu', 7, 'Manchester City'),
+    mkPlayer('26', 'BEL15', 'Kevin De Bruyne', 'Belgique', '🇧🇪', 'be', 'Milieu', 7, 'Manchester City', 'kdb'),
     mkPlayer('26', 'BEL16', 'Jérémy Doku', 'Belgique', '🇧🇪', 'be', 'Attaquant', 11, 'Manchester City'),
     mkPlayer('26', 'BEL17', 'Charles De Ketelaere', 'Belgique', '🇧🇪', 'be', 'Attaquant', 22, 'Atalanta Bergame'),
     mkPlayer('26', 'BEL18', 'Leandro Trossard', 'Belgique', '🇧🇪', 'be', 'Attaquant', 9, 'Arsenal'),
@@ -1337,7 +1354,7 @@ mkBadge('26', 'CAN1', 'Canada', '🇨🇦', 'ca'),
     mkPlayer('26', 'BEL20', 'Romelu Lukaku', 'Belgique', '🇧🇪', 'be', 'Attaquant', 10, 'Naples'),
     // ── Égypte ──
 mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
-    mkPlayer('26', 'EGY2', 'Mohamed El Shenawy', 'Égypte', '🇪🇬', 'eg', 'Gardien', 1, 'Al Ahly'),
+    mkPlayer('26', 'EGY2', 'Mohamed Elshenawy', 'Égypte', '🇪🇬', 'eg', 'Gardien', 1, 'Al Ahly'),
     mkPlayer('26', 'EGY3', 'Mohamed Hany', 'Égypte', '🇪🇬', 'eg', 'Défenseur', 3, 'Al Ahly'),
     mkPlayer('26', 'EGY4', 'Mohamed Hamdy', 'Égypte', '🇪🇬', 'eg', 'Défenseur', 13, 'Pyramids FC'),
     mkPlayer('26', 'EGY5', 'Yasser Ibrahim', 'Égypte', '🇪🇬', 'eg', 'Défenseur', 6, 'Al Ahly'),
@@ -1349,7 +1366,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'EGY11', 'Zizo', 'Égypte', '🇪🇬', 'eg', 'Milieu', 25, 'Zamalek'),
     mkPlayer('26', 'EGY12', 'Hamdy Fathy', 'Égypte', '🇪🇬', 'eg', 'Milieu', 5, 'Al-Wakrah'),
     mkSpecial('26', 'EGY13', 'Photo Égypte', 'special', 'Égypte', '🇪🇬', 'eg'),
-    mkPlayer('26', 'EGY14', 'Mohamed Lasheen', 'Égypte', '🇪🇬', 'eg', 'Milieu', 20, 'Pyramids FC'),
+    mkPlayer('26', 'EGY14', 'Mohanad Lasheen', 'Égypte', '🇪🇬', 'eg', 'Milieu', 20, 'Pyramids FC'),
     mkPlayer('26', 'EGY15', 'Emam Ashour', 'Égypte', '🇪🇬', 'eg', 'Milieu', 8, 'Al Ahly'),
     mkPlayer('26', 'EGY16', 'Osama Faisal', 'Égypte', '🇪🇬', 'eg', 'Attaquant', 9, 'National Bank of Egypt'),
     mkPlayer('26', 'EGY17', 'Mohamed Salah', 'Égypte', '🇪🇬', 'eg', 'Attaquant', 10, 'Liverpool'),
@@ -1409,45 +1426,45 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'ESP8', 'Marc Cucurella', 'Espagne', '🇪🇸', 'es', 'Défenseur', 24, 'Chelsea'),
     mkPlayer('26', 'ESP9', 'Martín Zubimendi', 'Espagne', '🇪🇸', 'es', 'Milieu', 18, 'Real Sociedad'),
     mkPlayer('26', 'ESP10', 'Rodri', 'Espagne', '🇪🇸', 'es', 'Milieu', 16, 'Manchester City'),
-    mkPlayer('26', 'ESP11', 'Pedri', 'Espagne', '🇪🇸', 'es', 'Milieu', 20, 'FC Barcelone'),
+    mkPlayer('26', 'ESP11', 'Pedri', 'Espagne', '🇪🇸', 'es', 'Milieu', 20, 'FC Barcelone', 'pedri'),
     mkPlayer('26', 'ESP12', 'Fabian Ruiz', 'Espagne', '🇪🇸', 'es', 'Milieu', 8, 'Paris Saint-Germain'),
     mkSpecial('26', 'ESP13', 'Photo Espagne', 'special', 'Espagne', '🇪🇸', 'es'),
     mkPlayer('26', 'ESP14', 'Mikel Merino', 'Espagne', '🇪🇸', 'es', 'Milieu', 6, 'Arsenal'),
-    mkPlayer('26', 'ESP15', 'Lamine Yamal', 'Espagne', '🇪🇸', 'es', 'Attaquant', 19, 'FC Barcelone'),
+    mkPlayer('26', 'ESP15', 'Lamine Yamal', 'Espagne', '🇪🇸', 'es', 'Attaquant', 19, 'FC Barcelone', 'yamal'),
     mkPlayer('26', 'ESP16', 'Dani Olmo', 'Espagne', '🇪🇸', 'es', 'Milieu', 10, 'FC Barcelone'),
     mkPlayer('26', 'ESP17', 'Nico Williams', 'Espagne', '🇪🇸', 'es', 'Attaquant', 17, 'Athletic Bilbao'),
-    mkPlayer('26', 'ESP18', 'Ferran Torres', 'Espagne', '🇪🇸', 'es', 'Attaquant', 11, 'FC Barcelone'),
+    mkPlayer('26', 'ESP18', 'Ferran Torres', 'Espagne', '🇪🇸', 'es', 'Attaquant', 11, 'FC Barcelone', 'ftorres'),
     mkPlayer('26', 'ESP19', 'Álvaro Morata', 'Espagne', '🇪🇸', 'es', 'Attaquant', 7, 'AC Milan'),
     mkPlayer('26', 'ESP20', 'Mikel Oyarzabal', 'Espagne', '🇪🇸', 'es', 'Attaquant', 21, 'Real Sociedad'),
     // ── Cape Verde ──
-    mkBadge('26', 'CPV1', 'Cape Verde', '🇨🇻', 'cv'),
-    mkPlayer('26', 'CPV2', 'Vozinha', 'Cape Verde', '🇨🇻', 'cv', 'Gardien', 1, 'AS Trenčín'),
-    mkPlayer('26', 'CPV3', 'Logan Costa', 'Cape Verde', '🇨🇻', 'cv', 'Défenseur', 4, 'Villarreal'),
-    mkPlayer('26', 'CPV4', 'Pico', 'Cape Verde', '🇨🇻', 'cv', 'Défenseur', 3, 'Shamrock Rovers'),
-    mkPlayer('26', 'CPV5', 'Diney', 'Cape Verde', '🇨🇻', 'cv', 'Défenseur', 5, 'Al-Bataeh'),
-    mkPlayer('26', 'CPV6', 'Steven Moreira', 'Cape Verde', '🇨🇻', 'cv', 'Défenseur', 22, 'Columbus Crew'),
-    mkPlayer('26', 'CPV7', 'Wagner Pina', 'Cape Verde', '🇨🇻', 'cv', 'Défenseur', 19, 'Estoril-Praia'),
-    mkPlayer('26', 'CPV8', 'Joao Paulo', 'Cape Verde', '🇨🇻', 'cv', 'Défenseur', 16, 'Sheriff Tiraspol'),
-    mkPlayer('26', 'CPV9', 'Yannick Semedo', 'Cape Verde', '🇨🇻', 'cv', 'Milieu', 6, 'FC Vizela'),
-    mkPlayer('26', 'CPV10', 'Kevin Pina', 'Cape Verde', '🇨🇻', 'cv', 'Milieu', 26, 'FK Krasnodar'),
-    mkPlayer('26', 'CPV11', 'Patrick Andrade', 'Cape Verde', '🇨🇻', 'cv', 'Milieu', 18, 'Qarabag FK'),
-    mkPlayer('26', 'CPV12', 'Jamiro Monteiro', 'Cape Verde', '🇨🇻', 'cv', 'Milieu', 10, 'Zwolle'),
-    mkSpecial('26', 'CPV13', 'Photo Cape Verde', 'special', 'Cape Verde', '🇨🇻', 'cv'),
-    mkPlayer('26', 'CPV14', 'Deroy Duarte', 'Cape Verde', '🇨🇻', 'cv', 'Milieu', 8, 'Ludogorets Razgrad'),
-    mkPlayer('26', 'CPV15', 'Garry Rodrigues', 'Cape Verde', '🇨🇻', 'cv', 'Attaquant', 11, 'Sivasspor'),
-    mkPlayer('26', 'CPV16', 'Jovane Cabral', 'Cape Verde', '🇨🇻', 'cv', 'Attaquant', 20, 'Göztepe'),
-    mkPlayer('26', 'CPV17', 'Ryan Mendes', 'Cape Verde', '🇨🇻', 'cv', 'Attaquant', 20, 'Al-Nasr Benghazi'),
-    mkPlayer('26', 'CPV18', 'Dailon Livramento', 'Cape Verde', '🇨🇻', 'cv', 'Attaquant', 9, 'Hellas Vérone'),
-    mkPlayer('26', 'CPV19', 'Willy Semedo', 'Cape Verde', '🇨🇻', 'cv', 'Attaquant', 7, 'Omonia Nicosie'),
-    mkPlayer('26', 'CPV20', 'Bebe', 'Cape Verde', '🇨🇻', 'cv', 'Attaquant', 21, 'Racing Ferrol'),
+    mkBadge('26', 'CPV1', 'Cap-Vert', '🇨🇻', 'cv'),
+    mkPlayer('26', 'CPV2', 'Vozinha', 'Cap-Vert', '🇨🇻', 'cv', 'Gardien', 1, 'AS Trenčín'),
+    mkPlayer('26', 'CPV3', 'Logan Costa', 'Cap-Vert', '🇨🇻', 'cv', 'Défenseur', 4, 'Villarreal'),
+    mkPlayer('26', 'CPV4', 'Pico', 'Cap-Vert', '🇨🇻', 'cv', 'Défenseur', 3, 'Shamrock Rovers'),
+    mkPlayer('26', 'CPV5', 'Diney', 'Cap-Vert', '🇨🇻', 'cv', 'Défenseur', 5, 'Al-Bataeh'),
+    mkPlayer('26', 'CPV6', 'Steven Moreira', 'Cap-Vert', '🇨🇻', 'cv', 'Défenseur', 22, 'Columbus Crew'),
+    mkPlayer('26', 'CPV7', 'Wagner Pina', 'Cap-Vert', '🇨🇻', 'cv', 'Défenseur', 19, 'Estoril-Praia'),
+    mkPlayer('26', 'CPV8', 'Joao Paulo', 'Cap-Vert', '🇨🇻', 'cv', 'Défenseur', 16, 'Sheriff Tiraspol'),
+    mkPlayer('26', 'CPV9', 'Yannick Semedo', 'Cap-Vert', '🇨🇻', 'cv', 'Milieu', 6, 'FC Vizela'),
+    mkPlayer('26', 'CPV10', 'Kevin Pina', 'Cap-Vert', '🇨🇻', 'cv', 'Milieu', 26, 'FK Krasnodar'),
+    mkPlayer('26', 'CPV11', 'Patrick Andrade', 'Cap-Vert', '🇨🇻', 'cv', 'Milieu', 18, 'Qarabag FK'),
+    mkPlayer('26', 'CPV12', 'Jamiro Monteiro', 'Cap-Vert', '🇨🇻', 'cv', 'Milieu', 10, 'Zwolle'),
+    mkSpecial('26', 'CPV13', 'Photo Cap-Vert', 'special', 'Cap-Vert', '🇨🇻', 'cv'),
+    mkPlayer('26', 'CPV14', 'Deroy Duarte', 'Cap-Vert', '🇨🇻', 'cv', 'Milieu', 8, 'Ludogorets Razgrad'),
+    mkPlayer('26', 'CPV15', 'Garry Rodrigues', 'Cap-Vert', '🇨🇻', 'cv', 'Attaquant', 11, 'Sivasspor'),
+    mkPlayer('26', 'CPV16', 'Jovane Cabral', 'Cap-Vert', '🇨🇻', 'cv', 'Attaquant', 20, 'Göztepe'),
+    mkPlayer('26', 'CPV17', 'Ryan Mendes', 'Cap-Vert', '🇨🇻', 'cv', 'Attaquant', 20, 'Al-Nasr Benghazi'),
+    mkPlayer('26', 'CPV18', 'Dailon Livramento', 'Cap-Vert', '🇨🇻', 'cv', 'Attaquant', 9, 'Hellas Vérone'),
+    mkPlayer('26', 'CPV19', 'Willy Semedo', 'Cap-Vert', '🇨🇻', 'cv', 'Attaquant', 7, 'Omonia Nicosie'),
+    mkPlayer('26', 'CPV20', 'Bebe', 'Cap-Vert', '🇨🇻', 'cv', 'Attaquant', 21, 'Racing Ferrol'),
     // ── Arabie Saoudite ──
     mkBadge('26', 'KSA1', 'Arabie Saoudite', '🇸🇦', 'sa'),
     mkPlayer('26', 'KSA2', 'Nawaf Alaqidi', 'Arabie Saoudite', '🇸🇦', 'sa', 'Gardien', 22, 'Al-Nassr'),
-    mkPlayer('26', 'KSA3', 'Abdulrahman Al-Sanbi', 'Arabie Saoudite', '🇸🇦', 'sa', 'Gardien', 1, 'Al-Ahli'),
+    mkPlayer('26', 'KSA3', 'Abdulrahman Alsanbi', 'Arabie Saoudite', '🇸🇦', 'sa', 'Gardien', 1, 'Al-Ahli'),
     mkPlayer('26', 'KSA4', 'Saud Abdulhamid', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 12, 'AS Rome'),
-    mkPlayer('26', 'KSA5', 'Nawaf Bouwashl', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 2, 'Al-Nassr'),
-    mkPlayer('26', 'KSA6', 'Jihad Thakri', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 4, 'Al-Qadsiah'),
-    mkPlayer('26', 'KSA7', 'Moteb Al-Harbi', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 13, 'Al-Hilal'),
+    mkPlayer('26', 'KSA5', 'Nawaf Buwashl', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 2, 'Al-Nassr'),
+    mkPlayer('26', 'KSA6', 'Jehad Thikri', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 4, 'Al-Qadsiah'),
+    mkPlayer('26', 'KSA7', 'Moteb Alharbi', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 13, 'Al-Hilal'),
     mkPlayer('26', 'KSA8', 'Hassan Altambakti', 'Arabie Saoudite', '🇸🇦', 'sa', 'Défenseur', 17, 'Al-Hilal'),
     mkPlayer('26', 'KSA9', 'Musab Aljuwayr', 'Arabie Saoudite', '🇸🇦', 'sa', 'Milieu', 6, 'Al-Shabab'),
     mkPlayer('26', 'KSA10', 'Ziyad Aljohani', 'Arabie Saoudite', '🇸🇦', 'sa', 'Milieu', 15, 'Al-Ahli'),
@@ -1457,10 +1474,10 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'KSA14', 'Saleh Abu Alshamat', 'Arabie Saoudite', '🇸🇦', 'sa', 'Milieu', 3, 'Al-Qadsiah'),
     mkPlayer('26', 'KSA15', 'Marwan Alsahafi', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 20, 'Beerschot V.A.'),
     mkPlayer('26', 'KSA16', 'Salem Aldawsari', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 10, 'Al-Hilal'),
-    mkPlayer('26', 'KSA17', 'Abdulrahman Al-Aboud', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 19, 'Al-Ittihad'),
-    mkPlayer('26', 'KSA18', 'Feras Akbrikan', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 9, 'Al-Ahli'),
+    mkPlayer('26', 'KSA17', 'Abdulrahman Alobud', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 19, 'Al-Ittihad'),
+    mkPlayer('26', 'KSA18', 'Feras Albrikan', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 9, 'Al-Ahli'),
     mkPlayer('26', 'KSA19', 'Saleh Alshehri', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 11, 'Al-Ittihad'),
-    mkPlayer('26', 'KSA20', 'Abdullah Al-Hamdan', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 14, 'Al-Hilal'),
+    mkPlayer('26', 'KSA20', 'Abdullah Alhamdan', 'Arabie Saoudite', '🇸🇦', 'sa', 'Attaquant', 14, 'Al-Hilal'),
     // ── Uruguay ──
     mkBadge('26', 'URU1', 'Uruguay', '🇺🇾', 'uy'),
     mkPlayer('26', 'URU2', 'Sergio Rochet', 'Uruguay', '🇺🇾', 'uy', 'Gardien', 1, 'Internacional'),
@@ -1478,7 +1495,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'URU14', 'Manuel Ugarte', 'Uruguay', '🇺🇾', 'uy', 'Milieu', 5, 'Manchester United'),
     mkPlayer('26', 'URU15', 'Nicolás de la Cruz', 'Uruguay', '🇺🇾', 'uy', 'Milieu', 7, 'Flamengo'),
     mkPlayer('26', 'URU16', 'Maxi Araujo', 'Uruguay', '🇺🇾', 'uy', 'Attaquant', 20, 'Sporting CP'),
-    mkPlayer('26', 'URU17', 'Darwin Núñez', 'Uruguay', '🇺🇾', 'uy', 'Attaquant', 19, 'Liverpool'),
+    mkPlayer('26', 'URU17', 'Darwin Núñez', 'Uruguay', '🇺🇾', 'uy', 'Attaquant', 19, 'Liverpool', 'darwin'),
     mkPlayer('26', 'URU18', 'Federico Viñas', 'Uruguay', '🇺🇾', 'uy', 'Attaquant', 18, 'Real Oviedo'),
     mkPlayer('26', 'URU19', 'Rodrigo Aguirre', 'Uruguay', '🇺🇾', 'uy', 'Attaquant', 9, 'Club América'),
     mkPlayer('26', 'URU20', 'Facundo Pellistri', 'Uruguay', '🇺🇾', 'uy', 'Attaquant', 11, 'Panaithinaïkos'),
@@ -1535,7 +1552,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'IRQ8', 'Manaf Younis', 'Irak', '🇮🇶', 'iq', 'Défenseur', 5, 'Al-Shorta'),
     mkPlayer('26', 'IRQ9', 'Zidane Iqbal', 'Irak', '🇮🇶', 'iq', 'Milieu', 14, 'FC Utrecht'),
     mkPlayer('26', 'IRQ10', 'Amir Al-Ammari', 'Irak', '🇮🇶', 'iq', 'Milieu', 16, 'Cracovia'),
-    mkPlayer('26', 'IRQ11', 'Ibrahim Bavesh', 'Irak', '🇮🇶', 'iq', 'Milieu', 8, 'Al-Quwa Al-Jawiya'),
+    mkPlayer('26', 'IRQ11', 'Ibrahim Bayesh', 'Irak', '🇮🇶', 'iq', 'Milieu', 8, 'Al-Quwa Al-Jawiya'),
     mkPlayer('26', 'IRQ12', 'Ali Jasim', 'Irak', '🇮🇶', 'iq', 'Milieu', 17, 'Côme 1907'),
     mkSpecial('26', 'IRQ13', 'Photo Irak', 'special', 'Irak', '🇮🇶', 'iq'),
     mkPlayer('26', 'IRQ14', 'Youssef Amyn', 'Irak', '🇮🇶', 'iq', 'Milieu', 7, 'Al-Wehda'),
@@ -1547,9 +1564,9 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'IRQ20', 'Mohanad Ali', 'Irak', '🇮🇶', 'iq', 'Attaquant', 10, 'Al-Shorta'),
     // ── Norvège ──
     mkBadge('26', 'NOR1', 'Norvège', '🇳🇴', 'no'),
-    mkPlayer('26', 'NOR2', 'Orjan Nyland', 'Norvège', '🇳🇴', 'no', 'Gardien', 1, 'Séville FC'),
+    mkPlayer('26', 'NOR2', 'Ørjan Nyland', 'Norvège', '🇳🇴', 'no', 'Gardien', 1, 'Séville FC'),
     mkPlayer('26', 'NOR3', 'Julian Ryerson', 'Norvège', '🇳🇴', 'no', 'Défenseur', 14, 'Borussia Dortmund'),
-    mkPlayer('26', 'NOR4', 'Leo Ostigård', 'Norvège', '🇳🇴', 'no', 'Défenseur', 4, 'Stade Rennais'),
+    mkPlayer('26', 'NOR4', 'Leo Østigård', 'Norvège', '🇳🇴', 'no', 'Défenseur', 4, 'Stade Rennais'),
     mkPlayer('26', 'NOR5', 'Kristoffer Vassbakk Ajer', 'Norvège', '🇳🇴', 'no', 'Défenseur', 3, 'Brentford'),
     mkPlayer('26', 'NOR6', 'Marcus Holmgren Pedersen', 'Norvège', '🇳🇴', 'no', 'Défenseur', 22, 'Torino'),
     mkPlayer('26', 'NOR7', 'David Møller Wolfe', 'Norvège', '🇳🇴', 'no', 'Défenseur', 2, 'AZ Alkmaar'),
@@ -1563,7 +1580,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'NOR15', 'Erling Haaland', 'Norvège', '🇳🇴', 'no', 'Attaquant', 9, 'Manchester City'),
     mkPlayer('26', 'NOR16', 'Alexander Sørloth', 'Norvège', '🇳🇴', 'no', 'Attaquant', 7, 'Atlético de Madrid'),
     mkPlayer('26', 'NOR17', 'Aron Dønnum', 'Norvège', '🇳🇴', 'no', 'Attaquant', 11, 'Toulouse FC'),
-    mkPlayer('26', 'NOR18', 'Jorgen Strand Larsen', 'Norvège', '🇳🇴', 'no', 'Attaquant', 19, 'Wolverhampton'),
+    mkPlayer('26', 'NOR18', 'Jørgen Strand Larsen', 'Norvège', '🇳🇴', 'no', 'Attaquant', 19, 'Wolverhampton'),
     mkPlayer('26', 'NOR19', 'Antonio Nusa', 'Norvège', '🇳🇴', 'no', 'Attaquant', 20, 'RB Leipzig'),
     mkPlayer('26', 'NOR20', 'Oscar Bobb', 'Norvège', '🇳🇴', 'no', 'Attaquant', 23, 'Manchester City'),
     // ── Argentine ──
@@ -1583,7 +1600,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'ARG14', 'Nico Paz', 'Argentine', '🇦🇷', 'ar', 'Milieu', 18, 'Côme 1907'),
     mkPlayer('26', 'ARG15', 'Franco Mastantuono', 'Argentine', '🇦🇷', 'ar', 'Milieu', 15, 'River Plate'),
     mkPlayer('26', 'ARG16', 'Nico Gonzalez', 'Argentine', '🇦🇷', 'ar', 'Attaquant', 15, 'Juventus'),
-    mkPlayer('26', 'ARG17', 'Lionel Messi', 'Argentine', '🇦🇷', 'ar', 'Attaquant', 10, 'Inter Miami'),
+    mkPlayer('26', 'ARG17', 'Lionel Messi', 'Argentine', '🇦🇷', 'ar', 'Attaquant', 10, 'Inter Miami', 'messi'),
     mkPlayer('26', 'ARG18', 'Lautaro Martinez', 'Argentine', '🇦🇷', 'ar', 'Attaquant', 22, 'Inter Milan'),
     mkPlayer('26', 'ARG19', 'Julian Alvarez', 'Argentine', '🇦🇷', 'ar', 'Attaquant', 9, 'Atlético de Madrid'),
     mkPlayer('26', 'ARG20', 'Giuliano Simeone', 'Argentine', '🇦🇷', 'ar', 'Attaquant', 17, 'Atlético de Madrid'),
@@ -1630,26 +1647,26 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'AUT19', 'Michael Gregoritsch', 'Autriche', '🇦🇹', 'at', 'Attaquant', 11, 'SC Fribourg'),
     mkPlayer('26', 'AUT20', 'Marko Arnautović', 'Autriche', '🇦🇹', 'at', 'Attaquant', 7, 'Inter Milan'),
     // ── Jordan ──
-    mkBadge('26', 'JOR1', 'Jordan', '🇯🇴', 'jo'),
-    mkPlayer('26', 'JOR2', 'Yazeed Abulaila', 'Jordan', '🇯🇴', 'jo', 'Gardien', 1, 'Al-Hussein SC'),
-    mkPlayer('26', 'JOR3', 'Ihsan Haddad', 'Jordan', '🇯🇴', 'jo', 'Défenseur', 23, 'Al-Faisaly'),
-    mkPlayer('26', 'JOR4', 'Mohammad Abu Hashish', 'Jordan', '🇯🇴', 'jo', 'Défenseur', 3, 'Al-Wehdat'),
-    mkPlayer('26', 'JOR5', 'Yazan Al-Arab', 'Jordan', '🇯🇴', 'jo', 'Défenseur', 5, 'FC Séoul'),
-    mkPlayer('26', 'JOR6', 'Abdallah Nasib', 'Jordan', '🇯🇴', 'jo', 'Défenseur', 4, 'Al-Hussein SC'),
-    mkPlayer('26', 'JOR7', 'Saleem Obaid', 'Jordan', '🇯🇴', 'jo', 'Défenseur', 19, 'Al-Faisaly'),
-    mkPlayer('26', 'JOR8', 'Mohammad Abualnadi', 'Jordan', '🇯🇴', 'jo', 'Défenseur', 2, 'Al-Wehdat'),
-    mkPlayer('26', 'JOR9', 'Ibrahim Saadeh', 'Jordan', '🇯🇴', 'jo', 'Milieu', 8, 'Al-Khor SC'),
-    mkPlayer('26', 'JOR10', 'Nizar Al-Rashdan', 'Jordan', '🇯🇴', 'jo', 'Milieu', 21, 'Emirates Club'),
-    mkPlayer('26', 'JOR11', 'Noor Al-Rawabdeh', 'Jordan', '🇯🇴', 'jo', 'Milieu', 14, 'Selangor FC'),
-    mkPlayer('26', 'JOR12', 'Mohannad Abu Taha', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 11, 'Al-Wehdat'),
-    mkSpecial('26', 'JOR13', 'Photo Jordan', 'special', 'Jordan', '🇯🇴', 'jo'),
-    mkPlayer('26', 'JOR14', 'Amer Jamous', 'Jordan', '🇯🇴', 'jo', 'Milieu', 15, 'Al-Wehdat'),
-    mkPlayer('26', 'JOR15', 'Musa Al-Taamari', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 10, 'Montpellier HSC'),
-    mkPlayer('26', 'JOR16', 'Yazan Al-Naimat', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 11, 'Al-Arabi SC'),
-    mkPlayer('26', 'JOR17', 'Mahmoud Al-Mardi', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 13, 'Al-Hussein SC'),
-    mkPlayer('26', 'JOR18', 'Ali Olwan', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 9, 'Al-Salmiya SC'),
-    mkPlayer('26', 'JOR19', 'Mohammad Abu Zrayq', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 7, 'Al-Wehdat'),
-    mkPlayer('26', 'JOR20', 'Ibrahim Sabra', 'Jordan', '🇯🇴', 'jo', 'Attaquant', 18, 'Al-Wehdat'),
+    mkBadge('26', 'JOR1', 'Jordanie', '🇯🇴', 'jo'),
+    mkPlayer('26', 'JOR2', 'Yazeed Abulaila', 'Jordanie', '🇯🇴', 'jo', 'Gardien', 1, 'Al-Hussein SC'),
+    mkPlayer('26', 'JOR3', 'Ihsan Haddad', 'Jordanie', '🇯🇴', 'jo', 'Défenseur', 23, 'Al-Faisaly'),
+    mkPlayer('26', 'JOR4', 'Mohammad Abu Hashish', 'Jordanie', '🇯🇴', 'jo', 'Défenseur', 3, 'Al-Wehdat'),
+    mkPlayer('26', 'JOR5', 'Yazan Al-Arab', 'Jordanie', '🇯🇴', 'jo', 'Défenseur', 5, 'FC Séoul'),
+    mkPlayer('26', 'JOR6', 'Abdallah Nasib', 'Jordanie', '🇯🇴', 'jo', 'Défenseur', 4, 'Al-Hussein SC'),
+    mkPlayer('26', 'JOR7', 'Saleem Obaid', 'Jordanie', '🇯🇴', 'jo', 'Défenseur', 19, 'Al-Faisaly'),
+    mkPlayer('26', 'JOR8', 'Mohammad Abualnadi', 'Jordanie', '🇯🇴', 'jo', 'Défenseur', 2, 'Al-Wehdat'),
+    mkPlayer('26', 'JOR9', 'Ibrahim Saadeh', 'Jordanie', '🇯🇴', 'jo', 'Milieu', 8, 'Al-Khor SC'),
+    mkPlayer('26', 'JOR10', 'Nizar Al-Rashdan', 'Jordanie', '🇯🇴', 'jo', 'Milieu', 21, 'Emirates Club'),
+    mkPlayer('26', 'JOR11', 'Noor Al-Rawabdeh', 'Jordanie', '🇯🇴', 'jo', 'Milieu', 14, 'Selangor FC'),
+    mkPlayer('26', 'JOR12', 'Mohannad Abu Taha', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 11, 'Al-Wehdat'),
+    mkSpecial('26', 'JOR13', 'Photo Jordanie', 'special', 'Jordanie', '🇯🇴', 'jo'),
+    mkPlayer('26', 'JOR14', 'Amer Jamous', 'Jordanie', '🇯🇴', 'jo', 'Milieu', 15, 'Al-Wehdat'),
+    mkPlayer('26', 'JOR15', 'Mousa Al-Taamari', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 10, 'Montpellier HSC'),
+    mkPlayer('26', 'JOR16', 'Yazan Al-Naimat', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 11, 'Al-Arabi SC'),
+    mkPlayer('26', 'JOR17', 'Mahmoud Al-Mardi', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 13, 'Al-Hussein SC'),
+    mkPlayer('26', 'JOR18', 'Ali Olwan', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 9, 'Al-Salmiya SC'),
+    mkPlayer('26', 'JOR19', 'Mohammad Abu Zrayq', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 7, 'Al-Wehdat'),
+    mkPlayer('26', 'JOR20', 'Ibrahim Sabra', 'Jordanie', '🇯🇴', 'jo', 'Attaquant', 18, 'Al-Wehdat'),
     // ── Portugal ──
     mkBadge('26', 'POR1', 'Portugal', '🇵🇹', 'pt'),
     mkPlayer('26', 'POR2', 'Diogo Costa', 'Portugal', '🇵🇹', 'pt', 'Gardien', 22, 'FC Porto'),
@@ -1665,7 +1682,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'POR12', 'Vitinha', 'Portugal', '🇵🇹', 'pt', 'Milieu', 23, 'Paris Saint-Germain'),
     mkSpecial('26', 'POR13', 'Photo Portugal', 'special', 'Portugal', '🇵🇹', 'pt'),
     mkPlayer('26', 'POR14', 'João Neves', 'Portugal', '🇵🇹', 'pt', 'Milieu', 15, 'Paris Saint-Germain'),
-    mkPlayer('26', 'POR15', 'Cristiano Ronaldo', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 7, 'Al-Nassr'),
+    mkPlayer('26', 'POR15', 'Cristiano Ronaldo', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 7, 'Al-Nassr', 'cr7'),
     mkPlayer('26', 'POR16', 'Francisco Trincao', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 11, 'Sporting CP'),
     mkPlayer('26', 'POR17', 'João Felix', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 11, 'Chelsea'),
     mkPlayer('26', 'POR18', 'Gonçalo Ramos', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 9, 'Paris Saint-Germain'),
@@ -1673,7 +1690,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'POR20', 'Rafael Leão', 'Portugal', '🇵🇹', 'pt', 'Attaquant', 17, 'AC Milan'),
     // ── Congo RD ──
     mkBadge('26', 'COD1', 'Congo RD', '🇨🇩', 'cd'),
-    mkPlayer('26', 'COD2', 'Lionel Mpasi-Nzau', 'Congo RD', '🇨🇩', 'cd', 'Gardien', 1, 'Rodez AF'),
+    mkPlayer('26', 'COD2', 'Lionel Mpasi', 'Congo RD', '🇨🇩', 'cd', 'Gardien', 1, 'Rodez AF'),
     mkPlayer('26', 'COD3', 'Aaron Wan-Bissaka', 'Congo RD', '🇨🇩', 'cd', 'Défenseur', 2, 'West Ham United'),
     mkPlayer('26', 'COD4', 'Axel Tuanzebe', 'Congo RD', '🇨🇩', 'cd', 'Défenseur', 4, 'Ipswich Town'),
     mkPlayer('26', 'COD5', 'Arthur Masuaku', 'Congo RD', '🇨🇩', 'cd', 'Défenseur', 26, 'Beşiktaş JK'),
@@ -1686,7 +1703,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'COD12', 'Noah Sadiki', 'Congo RD', '🇨🇩', 'cd', 'Milieu', 21, 'Union Saint-Gilloise'),
     mkSpecial('26', 'COD13', 'Photo Congo RD', 'special', 'Congo RD', '🇨🇩', 'cd'),
     mkPlayer('26', 'COD14', 'Théo Bongonda', 'Congo RD', '🇨🇩', 'cd', 'Attaquant', 10, 'Spartak Moscou'),
-    mkPlayer('26', 'COD15', 'Meschak Elia', 'Congo RD', '🇨🇩', 'cd', 'Attaquant', 13, 'Young Boys Berne'),
+    mkPlayer('26', 'COD15', 'Meschack Elia', 'Congo RD', '🇨🇩', 'cd', 'Attaquant', 13, 'Young Boys Berne'),
     mkPlayer('26', 'COD16', 'Yoane Wissa', 'Congo RD', '🇨🇩', 'cd', 'Attaquant', 20, 'Brentford'),
     mkPlayer('26', 'COD17', 'Brian Cipenga', 'Congo RD', '🇨🇩', 'cd', 'Attaquant', 7, 'Leixões SC'),
     mkPlayer('26', 'COD18', 'Fiston Mayele', 'Congo RD', '🇨🇩', 'cd', 'Attaquant', 19, 'Pyramids FC'),
@@ -1699,7 +1716,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'UZB4', 'Sherzod Nasrullaev', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 4, 'FC Nasaf'),
     mkPlayer('26', 'UZB5', 'Umar Eshmurodov', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 5, 'Selangor FC'),
     mkPlayer('26', 'UZB6', 'Husniddin Aliqulov', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 23, 'Çaykur Rizespor'),
-    mkPlayer('26', 'UZB7', 'Rustamjon Ashurmatov', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 3, 'Rubin Kazan'),
+    mkPlayer('26', 'UZB7', 'Rustam Ashurmatov', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 3, 'Rubin Kazan'),
     mkPlayer('26', 'UZB8', 'Khojiakbar Alijonov', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 2, 'Pakhtakor Tachkent'),
     mkPlayer('26', 'UZB9', 'Abdukodir Khusanov', 'Ouzbékistan', '🇺🇿', 'uz', 'Défenseur', 15, 'RC Lens'),
     mkPlayer('26', 'UZB10', 'Odiljon Hamrobekov', 'Ouzbékistan', '🇺🇿', 'uz', 'Milieu', 9, 'Navbahor Namangan'),
@@ -1727,12 +1744,12 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'COL11', 'Kevin Castaño', 'Colombie', '🇨🇴', 'co', 'Milieu', 5, 'FK Krasnodar'),
     mkPlayer('26', 'COL12', 'Richard Ríos', 'Colombie', '🇨🇴', 'co', 'Milieu', 6, 'SE Palmeiras'),
     mkSpecial('26', 'COL13', 'Photo Colombie', 'special', 'Colombie', '🇨🇴', 'co'),
-    mkPlayer('26', 'COL14', 'James Rodríguez', 'Colombie', '🇨🇴', 'co', 'Milieu', 10, 'Minnesota United'),
+    mkPlayer('26', 'COL14', 'James Rodríguez', 'Colombie', '🇨🇴', 'co', 'Milieu', 10, 'Minnesota United', 'james'),
     mkPlayer('26', 'COL15', 'Juan Fernando Quintero', 'Colombie', '🇨🇴', 'co', 'Milieu', 20, 'Racing Club'),
     mkPlayer('26', 'COL16', 'Jorge Carrascal', 'Colombie', '🇨🇴', 'co', 'Milieu', 8, 'Dynamo Moscou'),
     mkPlayer('26', 'COL17', 'Jhon Arias', 'Colombie', '🇨🇴', 'co', 'Attaquant', 11, 'Fluminense FC'),
     mkPlayer('26', 'COL18', 'Jhon Córdoba', 'Colombie', '🇨🇴', 'co', 'Attaquant', 9, 'FK Krasnodar'),
-    mkPlayer('26', 'COL19', 'Luis Suárez', 'Colombie', '🇨🇴', 'co', 'Attaquant', 19, 'UD Almería'),
+    mkPlayer('26', 'COL19', 'Luis Suárez', 'Colombie', '🇨🇴', 'co', 'Attaquant', 19, 'UD Almería', 'suarez'),
     mkPlayer('26', 'COL20', 'Luis Díaz', 'Colombie', '🇨🇴', 'co', 'Attaquant', 7, 'Liverpool FC'),
     // ── Angleterre ──
     mkBadge('26', 'ENG1', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en'),
@@ -1745,7 +1762,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'ENG8', 'Dan Burn', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Défenseur', 3, 'Newcastle United'),
     mkPlayer('26', 'ENG9', 'Jordan Henderson', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Milieu', 12, 'Ajax Amsterdam'),
     mkPlayer('26', 'ENG10', 'Declan Rice', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Milieu', 4, 'Arsenal FC'),
-    mkPlayer('26', 'ENG11', 'Jude Bellingham', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Milieu', 10, 'Real Madrid'),
+    mkPlayer('26', 'ENG11', 'Jude Bellingham', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Milieu', 10, 'Real Madrid', 'bellingham'),
     mkPlayer('26', 'ENG12', 'Cole Palmer', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Milieu', 24, 'Chelsea FC'),
     mkSpecial('26', 'ENG13', 'Photo Angleterre', 'special', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en'),
     mkPlayer('26', 'ENG14', 'Morgan Rogers', 'Angleterre', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'en', 'Milieu', 19, 'Aston Villa'),
@@ -1778,14 +1795,14 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'CRO20', 'Franjo Ivanović', 'Croatie', '🇭🇷', 'cr', 'Attaquant', 19, 'Union Saint-Gilloise'),
     // ── Ghana ──
     mkBadge('26', 'GHA1', 'Ghana', '🇬🇭', 'gh'),
-    mkPlayer('26', 'GHA2', 'Lawrence Ati-Zigi', 'Ghana', '🇬🇭', 'gh', 'Gardien', 1, 'FC Saint-Gall'),
+    mkPlayer('26', 'GHA2', 'Lawrence Ati Zigi', 'Ghana', '🇬🇭', 'gh', 'Gardien', 1, 'FC Saint-Gall'),
     mkPlayer('26', 'GHA3', 'Tariq Lamptey', 'Ghana', '🇬🇭', 'gh', 'Défenseur', 2, 'Brighton & Hove Albion'),
     mkPlayer('26', 'GHA4', 'Mohammed Salisu', 'Ghana', '🇬🇭', 'gh', 'Défenseur', 6, 'AS Monaco'),
     mkPlayer('26', 'GHA5', 'Alidu Seidu', 'Ghana', '🇬🇭', 'gh', 'Défenseur', 23, 'Stade Rennais'),
     mkPlayer('26', 'GHA6', 'Alexander Djiku', 'Ghana', '🇬🇭', 'gh', 'Défenseur', 21, 'Fenerbahçe SK'),
     mkPlayer('26', 'GHA7', 'Gideon Mensah', 'Ghana', '🇬🇭', 'gh', 'Défenseur', 14, 'AJ Auxerre'),
     mkPlayer('26', 'GHA8', 'Caleb Yirenkyi', 'Ghana', '🇬🇭', 'gh', 'Défenseur', 3, 'FC Nordsjælland'),
-    mkPlayer('26', 'GHA9', 'Abdul Fatawu Issahaku', 'Ghana', '🇬🇭', 'gh', 'Attaquant', 7, 'Leicester City'),
+    mkPlayer('26', 'GHA9', 'Abdul Issahaku Fatawu', 'Ghana', '🇬🇭', 'gh', 'Attaquant', 7, 'Leicester City'),
     mkPlayer('26', 'GHA10', 'Thomas Partey', 'Ghana', '🇬🇭', 'gh', 'Milieu', 5, 'Arsenal FC'),
     mkPlayer('26', 'GHA11', 'Salis Abdul Samed', 'Ghana', '🇬🇭', 'gh', 'Milieu', 20, 'Sunderland AFC'),
     mkPlayer('26', 'GHA12', 'Kamaldeen Sulemana', 'Ghana', '🇬🇭', 'gh', 'Attaquant', 22, 'Southampton FC'),
@@ -1806,7 +1823,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkPlayer('26', 'PAN6', 'Michael Amir Murillo', 'Panama', '🇵🇦', 'pa', 'Défenseur', 23, 'Olympique de Marseille'),
     mkPlayer('26', 'PAN7', 'Eric Davis', 'Panama', '🇵🇦', 'pa', 'Défenseur', 15, 'Vila Nova FC'),
     mkPlayer('26', 'PAN8', 'José Córdoba', 'Panama', '🇵🇦', 'pa', 'Défenseur', 24, 'Norwich City'),
-    mkPlayer('26', 'PAN9', 'César Blackman', 'Panama', '🇵🇦', 'pa', 'Défenseur', 2, 'Slovan Bratislava'),
+    mkPlayer('26', 'PAN9', 'César  Blackman', 'Panama', '🇵🇦', 'pa', 'Défenseur', 2, 'Slovan Bratislava'),
     mkPlayer('26', 'PAN10', 'Cristian Martínez', 'Panama', '🇵🇦', 'pa', 'Milieu', 6, 'Kiryat Shmona'),
     mkPlayer('26', 'PAN11', 'Aníbal Godoy', 'Panama', '🇵🇦', 'pa', 'Milieu', 20, 'Nashville SC'),
     mkPlayer('26', 'PAN12', 'Adalberto Carrasquilla', 'Panama', '🇵🇦', 'pa', 'Milieu', 8, 'Houston Dynamo'),
@@ -1830,7 +1847,7 @@ mkBadge('26', 'EGY1', 'Égypte', '🇪🇬', 'eg'),
     mkSpecial('26', 'FWC17', 'Italy 2006', 'special', 'FIFA World Cup History', '🌎', 'us'),
     mkSpecial('26', 'FWC18', 'Germany 2014', 'special', 'FIFA World Cup History', '🌎', 'us'),
     mkSpecial('26', 'FWC19', 'Argentina 2022', 'special', 'FIFA World Cup History', '🌎', 'us'),
-  ],
+  ]),
 };
 
 // ─── Cross-edition player index ───────────────────────────────────────────────
@@ -1861,7 +1878,7 @@ export const PLAYERS: Record<string, Player> = {
   zidane:       { key: 'zidane',       name: 'Zinédine Zidane',     flag: '🇫🇷', nationality: 'France',      position: 'Milieu',    editionIds: ['94','98','02','06'] },
   henry:        { key: 'henry',        name: 'Thierry Henry',       flag: '🇫🇷', nationality: 'France',      position: 'Attaquant', editionIds: ['98','02','06','10'] },
   ronaldo:      { key: 'ronaldo',      name: 'Ronaldo (R9)',        flag: '🇧🇷', nationality: 'Brésil',      position: 'Attaquant', editionIds: ['94','98','02','06'] },
-  ronaldinho:   { key: 'ronaldinho',   name: 'Ronaldinho',          flag: '🇧🇷', nationality: 'Brésil',      position: 'Milieu',    editionIds: ['98','02','06'] },
+  ronaldinho:   { key: 'ronaldinho',   name: 'Ronaldinho',          flag: '🇧🇷', nationality: 'Brésil',      position: 'Milieu',    editionIds: ['02','06'] },
   kaka:         { key: 'kaka',         name: 'Kaká',                flag: '🇧🇷', nationality: 'Brésil',      position: 'Milieu',    editionIds: ['02','06','10'] },
   bergkamp:     { key: 'bergkamp',     name: 'Dennis Bergkamp',     flag: '🇳🇱', nationality: 'Pays-Bas',    position: 'Attaquant', editionIds: ['98'] },
   beckham:      { key: 'beckham',      name: 'David Beckham',       flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', nationality: 'Angleterre',  position: 'Milieu',    editionIds: ['98','02','06'] },
@@ -1900,7 +1917,6 @@ export const PLAYERS: Record<string, Player> = {
   gavi:         { key: 'gavi',         name: 'Gavi',                flag: '🇪🇸', nationality: 'Espagne',     position: 'Milieu',    editionIds: ['22','26'] },
   musiala:      { key: 'musiala',      name: 'Jamal Musiala',       flag: '🇩🇪', nationality: 'Allemagne',   position: 'Milieu',    editionIds: ['22','26'] },
   hakimi:       { key: 'hakimi',       name: 'Achraf Hakimi',       flag: '🇲🇦', nationality: 'Maroc',       position: 'Défenseur', editionIds: ['22','26'] },
-  mane:         { key: 'mane',         name: 'Sadio Mané',          flag: '🇸🇳', nationality: 'Sénégal',     position: 'Attaquant', editionIds: ['22'] },
   // Nouveaux 2026
   yamal:        { key: 'yamal',        name: 'Lamine Yamal',        flag: '🇪🇸', nationality: 'Espagne',     position: 'Milieu',    editionIds: ['26'] },
   wirtz:        { key: 'wirtz',        name: 'Florian Wirtz',       flag: '🇩🇪', nationality: 'Allemagne',   position: 'Milieu',    editionIds: ['26'] },
@@ -1912,3 +1928,266 @@ export const PLAYERS: Record<string, Player> = {
   xavisimons:   { key: 'xavisimons',   name: 'Xavi Simons',         flag: '🇳🇱', nationality: 'Pays-Bas',    position: 'Milieu',    editionIds: ['26'] },
   mitoma:       { key: 'mitoma',       name: 'Kaoru Mitoma',        flag: '🇯🇵', nationality: 'Japon',       position: 'Milieu',    editionIds: ['26'] },
 };
+
+// ─── Effectifs complets 1970 → 2022 (chargés à la demande) ────────────────────
+// Chaque album est complété avec les joueurs des effectifs officiels
+// (src/data/squads/<édition>.ts, Fjelstul World Cup Database) quand on en a
+// besoin : le démarrage ne télécharge que les stickers saisis à la main.
+// Les stickers déjà saisis gardent leur numéro, pour que les collections
+// existantes restent valides ; les joueurs manquants (et l'écusson d'une
+// équipe s'il manque) reçoivent les numéros suivants.
+
+Object.assign(BG, TEAM_GRADIENTS);
+
+// Taille finale de chaque album, connue dès le démarrage (pourcentages justes avant chargement)
+for (const ed of EDITIONS) {
+  if (CHECKLIST_SIZES[ed.id]) ed.totalStickers = CHECKLIST_SIZES[ed.id]; // checklist officielle : taille exacte
+  else if (SQUAD_SIZES[ed.id]) ed.totalStickers = Math.max(ed.totalStickers, SQUAD_SIZES[ed.id]);
+}
+
+// ─── Photos libres de droits (Wikimedia Commons, voir photos.ts) ──────────────
+// Retrouvée par clé de joueur ("pele") ou par nom ("Kylian Mbappé" importé des effectifs).
+const photoKey = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const PHOTOS_BY_NAME = new Map(Object.values(PHOTOS).map((p) => [photoKey(p.name), p]));
+
+/** Photo (et crédits) du joueur d'un sticker, s'il en a une. */
+export const getPhoto = (s: Sticker): PlayerPhoto | undefined =>
+  s.category === 'badge' || !s.player ? undefined
+    : PHOTOS[s.player.playerKey ?? ''] ?? PHOTOS_BY_NAME.get(photoKey(s.player.name));
+
+const attachPhoto = (s: Sticker) => { if (!s.imageUrl) s.imageUrl = getPhoto(s)?.url; };
+Object.values(STICKERS_BY_EDITION).forEach((list) => list.forEach(attachPhoto));
+
+const SQUAD_POS = { G: 'Gardien', D: 'Défenseur', M: 'Milieu', A: 'Attaquant' } as const;
+const normName = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\bjr\b\.?/g, 'junior'); // "Vin\u00edcius Jr" = "Vin\u00edcius J\u00fanior"
+const lastWord = (s: string) => normName(s).split(/\s+/).pop() ?? '';
+// Mots significatifs d'un nom (sans "de", "da", "van"… ni initiales)
+const nameWords = (s: string) => normName(s).split(/[\s.]+/).filter((w) => w.length >= 4);
+const teamOfSticker = (s: Sticker) => s.teamName ?? s.player?.nationality ?? '';
+
+/**
+ * Même joueur sous deux orthographes ? Même nom de famille (avec la même initiale de prénom quand
+ * les deux en ont un), nom inversé (« Heung-min Son »), orthographe proche (« Rivellino ») ou même
+ * maillot + nom proche. Renvoie l'index dans `names`, ou -1.
+ */
+function findSamePlayer(rawNames: Array<{ name: string; shirt?: number }>, rawName: string, shirt?: number) {
+  // « Al-Sheeb » = « Al Sheeb »
+  const names = rawNames.map((x) => ({ ...x, name: x.name.replace(/-/g, ' ') }));
+  const name = rawName.replace(/-/g, ' ');
+  const exact = names.findIndex((x) => normName(x.name) === normName(name));
+  if (exact !== -1) return exact;
+  const last = lastWord(name);
+  const words = nameWords(name);
+  const initial = (n: string) => (normName(n).split(/\s+/).length > 1 ? normName(n)[0] : '');
+  return names.findIndex((x) => {
+    const l = lastWord(x.name);
+    const sameInitial = !initial(x.name) || !initial(name) || initial(x.name) === initial(name);
+    return (l === last && sameInitial)
+      || words.includes(l) || nameWords(x.name).includes(last)
+      || (l.length >= 5 && l.slice(0, 5) === last.slice(0, 5) && Math.abs(l.length - last.length) <= 1 && sameInitial)
+      || (shirt != null && x.shirt === shirt && l.slice(0, 4) === last.slice(0, 4));
+  });
+}
+
+// « Heung-min Son » = « Heungmin Son », « Lionel Andres Messi » = « Lionel Messi » :
+// même équipe nationale, même nom de famille, même premier prénom (ou son initiale).
+const compact = (s: string) => normName(s).replace(/[-'.]/g, '').split(/\s+/).filter(Boolean);
+const samePerson = (a: string, b: string) => {
+  const x = compact(a), y = compact(b);
+  if (x.join('') === y.join('')) return true;
+  if (x.length === 2 && y.length === 2 && x[0] === y[1] && x[1] === y[0]) return true; // « Son Heung-min » (ordre coréen)
+  if (x.length < 2 || y.length < 2 || x[x.length - 1] !== y[y.length - 1]) return false;
+  const [fx, fy] = [x[0], y[0]];
+  return fx === fy || (fx.length === 1 && fy.startsWith(fx)) || (fy.length === 1 && fx.startsWith(fy));
+};
+const playersByNation = new Map<string, Player[]>();
+// « clé|album » des stickers réellement rangés (les stars saisies à la main annoncent leurs albums d'avance)
+const placed = new Set<string>();
+
+/** Page joueur : relie le sticker à ses autres Coupes du Monde (même joueur, autre orthographe comprise). */
+const registerPlayer = (editionId: string, s: Sticker) => {
+  const p = s.player!;
+  let known = PLAYERS[p.playerKey!];
+  if (!known) {
+    // Déjà connu sous une autre graphie ? Jamais deux fois dans le même album.
+    known = (playersByNation.get(p.nationality) ?? []).find((x) => !placed.has(`${x.key}|${editionId}`) && samePerson(x.name, p.name))!;
+    if (known) p.playerKey = known.key;
+  }
+  if (!known) {
+    known = PLAYERS[p.playerKey!] = { key: p.playerKey!, name: p.name, flag: p.flag, nationality: p.nationality, position: p.position ?? '', editionIds: [editionId] };
+    playersByNation.set(p.nationality, [...(playersByNation.get(p.nationality) ?? []), known]);
+  } else if (!known.editionIds.includes(editionId)) known.editionIds.push(editionId);
+  placed.add(`${known.key}|${editionId}`);
+};
+// Les stars saisies à la main servent de point de départ
+for (const pl of Object.values(PLAYERS)) playersByNation.set(pl.nationality, [...(playersByNation.get(pl.nationality) ?? []), pl]);
+
+/** Construction d'un album sans checklist : stickers saisis + effectifs numérotés à la suite.
+ *  `register` = false : calcul seul (pour convertir les anciennes collections), sans toucher PLAYERS. */
+function mergeSquads(editionId: string, squads: Record<string, string>, list: Sticker[] = (STICKERS_BY_EDITION[editionId] ??= []), register = true) {
+  let next = list.reduce((max, s) => Math.max(max, s.number), 0) + 1;
+
+  // Ordre des pages : les équipes déjà présentes d'abord, puis les autres par ordre alphabétique
+  const known = [...new Set(list.map(teamOfSticker))];
+  const codes = Object.keys(squads).filter((c) => TEAMS[c]).sort((a, b) => {
+    const ia = known.indexOf(TEAMS[a].name), ib = known.indexOf(TEAMS[b].name);
+    if (ia !== -1 || ib !== -1) return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib);
+    return TEAMS[a].name.localeCompare(TEAMS[b].name, 'fr');
+  });
+
+  for (const code of codes) {
+    const team = TEAMS[code];
+    const existing = list.filter((s) => teamOfSticker(s) === team.name);
+    // Joueurs déjà saisis à la main, pas encore associés à un joueur de l'effectif
+    const pool = existing.filter((s) => s.category !== 'badge');
+
+    if (!existing.some((s) => s.category === 'badge')) list.push(mkBadge(editionId, next++, team.name, team.flag, team.colKey));
+
+    // Déjà saisi à la main ? Chaque sticker saisi ne sert qu'une fois.
+    // 1er passage : nom identique — sinon "Lautaro Martínez" prendrait la place d'"Emiliano Martínez".
+    const players = squads[code].split(';').map((entry) => entry.split('|'));
+    const done = players.map(([, , name]) => {
+      const i = pool.findIndex((s) => normName(s.player?.name ?? '') === normName(name));
+      return i !== -1 && !!pool.splice(i, 1);
+    });
+
+    players.forEach(([shirt, pos, name], idx) => {
+      if (done[idx]) return;
+      // 2e passage : même nom de famille (avec la même initiale de prénom quand les deux en ont un),
+      // nom inversé ("Heung-min Son"), orthographe proche ("Rivellino") ou même maillot + nom proche
+      const last = lastWord(name);
+      const words = nameWords(name);
+      const initial = (n: string) => (normName(n).split(/\s+/).length > 1 ? normName(n)[0] : '');
+      const match = pool.findIndex((s) => {
+        const other = s.player?.name ?? '';
+        const l = lastWord(other);
+        const sameInitial = !initial(other) || !initial(name) || initial(other) === initial(name);
+        return (l === last && sameInitial)
+          || words.includes(l) || nameWords(other).includes(last)
+          || (l.length >= 5 && l.slice(0, 5) === last.slice(0, 5) && Math.abs(l.length - last.length) <= 1 && sameInitial)
+          || (s.player?.jerseyNumber === Number(shirt) && l.slice(0, 4) === last.slice(0, 4));
+      });
+      if (match !== -1) { pool.splice(match, 1); return; }
+      const sticker = mkPlayer(editionId, next++, name, team.name, team.flag, team.colKey, SQUAD_POS[pos as keyof typeof SQUAD_POS], Number(shirt), '');
+      attachPhoto(sticker);
+      list.push(sticker);
+      if (register) registerPlayer(editionId, sticker); // page joueur : on relie ses Coupes du Monde
+    });
+  }
+
+  // Range l'album par équipe (pages), puis par numéro
+  const order = new Map<string, number>();
+  for (const s of list) if (!order.has(teamOfSticker(s))) order.set(teamOfSticker(s), order.size);
+  list.sort((a, b) => order.get(teamOfSticker(a))! - order.get(teamOfSticker(b))! || a.number - b.number);
+
+  const edition = EDITIONS.find((e) => e.id === editionId);
+  if (edition && register) edition.totalStickers = Math.max(edition.totalStickers, list.length);
+  return list;
+}
+
+// ─── Albums avec checklist officielle Panini (src/data/checklists/) ──────────
+// L'album est reconstruit dans l'ordre Panini, avec les vrais numéros. Pour chaque
+// joueur on récupère ce qu'on sait déjà : sticker saisi à la main (clé joueur, club,
+// photo) ou effectif officiel (poste, maillot).
+
+const TEAM_CODE_BY_NAME = Object.fromEntries(Object.entries(TEAMS).map(([code, t]) => [t.name, code]));
+
+function buildFromChecklist(editionId: string, checklist: string, squads: Record<string, string> | undefined, hand: Sticker[]) {
+  const edition = EDITIONS.find((e) => e.id === editionId)!;
+  const list: Sticker[] = [];
+  for (const line of checklist.split('\n')) {
+    const [num, code, section, kindRaw, name] = line.split('|');
+    const number = Number(num);
+    const shiny = kindRaw.endsWith('*');
+    const teamCode = TEAM_CODE_BY_NAME[section];
+    const meta = teamCode ? TEAMS[teamCode] : { flag: edition.hostFlag, colKey: edition.colKey };
+    let s: Sticker;
+    if (kindRaw[0] === 'B') {
+      s = mkBadge(editionId, number, section, meta.flag, meta.colKey);
+      s.isShiny = shiny;
+    } else if (kindRaw[0] === 'S') {
+      s = mkSpecial(editionId, number, name, shiny ? 'shiny' : 'special', section, meta.flag, meta.colKey);
+    } else {
+      const handPool = hand.filter((h) => h.category !== 'badge' && teamOfSticker(h) === section && h.player);
+      const h = handPool[findSamePlayer(handPool.map((x) => ({ name: x.player!.name, shirt: x.player!.jerseyNumber })), name)];
+      const squad = (teamCode && squads?.[teamCode] ? squads[teamCode].split(';') : []).map((e) => e.split('|'));
+      const q = squad[findSamePlayer(squad.map(([shirt, , n]) => ({ name: n, shirt: Number(shirt) })), name)];
+      const pos = h?.player?.position ?? (q ? SQUAD_POS[q[1] as keyof typeof SQUAD_POS] : undefined);
+      const shirt = h?.player?.jerseyNumber ?? (q ? Number(q[0]) : undefined);
+      // Nom déjà saisi à la main de préférence : les vieilles checklists n'ont pas les accents (« Pele »)
+      s = mkPlayer(editionId, number, h?.player?.name ?? name, section, meta.flag, meta.colKey, pos!, shirt!, h?.player?.club ?? '', h?.player?.playerKey, shiny || !!h?.isShiny, h?.imageUrl);
+      attachPhoto(s);
+      registerPlayer(editionId, s);
+    }
+    if (code) s.code = prettyCode(code);
+    list.push(s);
+  }
+  return list;
+}
+
+/**
+ * Ancien numéro → nouveau, pour convertir les collections cochées avant la checklist
+ * officielle : même page, et même joueur (ou écusson de la même équipe).
+ */
+function renumberMap(oldList: Sticker[], newList: Sticker[]) {
+  const map = new Map<number, number>();
+  const free = [...newList];
+  for (const o of oldList) {
+    const team = teamOfSticker(o);
+    const candidates = free.filter((n) => teamOfSticker(n) === team && (n.category === 'badge') === (o.category === 'badge'));
+    const i = o.category === 'badge' ? 0 : findSamePlayer(candidates.map((n) => ({ name: n.player?.name ?? '' })), o.player?.name ?? '', o.player?.jerseyNumber);
+    const match = candidates[i];
+    if (!match) continue;
+    map.set(o.number, match.number);
+    free.splice(free.indexOf(match), 1);
+  }
+  return map;
+}
+
+const renumberListeners = new Set<(editionId: string, map: Map<number, number>) => void>();
+/** Prévient (la collection) qu'un album vient de passer aux numéros officiels. */
+export const onEditionRenumbered = (fn: (editionId: string, map: Map<number, number>) => void) => { renumberListeners.add(fn); };
+
+// ─── Chargement à la demande ────────────────────────────────────────────────
+// Un fichier JS par album (Vite le découpe tout seul grâce à import.meta.glob).
+
+const SQUAD_FILES = import.meta.glob<{ default: Record<string, string> }>('./squads/*.ts');
+const CHECKLIST_FILES = import.meta.glob<{ default: string }>('./checklists/*.ts');
+const pending: Record<string, Promise<void>> = {};
+const loaded = new Set<string>();
+let dataVersion = 0;
+const listeners = new Set<() => void>();
+
+/** L'album est-il complet (rien à charger, ou déjà chargé) ? */
+export const isEditionLoaded = (editionId: string) => (!SQUAD_FILES[`./squads/${editionId}.ts`] && !CHECKLIST_FILES[`./checklists/${editionId}.ts`]) || loaded.has(editionId);
+
+/** Charge les effectifs d'un album (une seule fois) et prévient les composants abonnés. */
+export function loadEdition(editionId: string): Promise<void> {
+  const file = SQUAD_FILES[`./squads/${editionId}.ts`];
+  const checklistFile = CHECKLIST_FILES[`./checklists/${editionId}.ts`];
+  if ((!file && !checklistFile) || loaded.has(editionId)) return Promise.resolve();
+  return (pending[editionId] ??= Promise.all([file?.(), checklistFile?.()]).then(([squadMod, checklistMod]) => {
+    if (checklistMod) {
+      const hand = STICKERS_BY_EDITION[editionId] ?? [];
+      const next = buildFromChecklist(editionId, checklistMod.default, squadMod?.default, hand);
+      const old = squadMod ? mergeSquads(editionId, squadMod.default, [...hand], false) : hand;
+      STICKERS_BY_EDITION[editionId] = next;
+      const map = renumberMap(old, next);
+      renumberListeners.forEach((fn) => fn(editionId, map));
+    } else if (squadMod) {
+      mergeSquads(editionId, squadMod.default);
+    }
+    loaded.add(editionId);
+    dataVersion++;
+    listeners.forEach((fn) => fn());
+  }, (err) => {
+    delete pending[editionId]; // échec réseau : on pourra réessayer
+    throw err;
+  }));
+}
+
+export const loadAllEditions = () => Promise.all(EDITIONS.map((e) => loadEdition(e.id))).then(() => {});
+
+/** Pour useSyncExternalStore : change à chaque album chargé. */
+export const subscribeData = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
+export const getDataVersion = () => dataVersion;
