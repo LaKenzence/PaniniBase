@@ -216,9 +216,9 @@ export const StatsView: React.FC = () => {
   const tabs = [{ key: 'overview', label: t('Vue globale'), Icon: BarChart3 }, { key: 'albums', label: t('Par album'), Icon: Layers }, { key: 'badges', label: t('Badges'), Icon: Award }, { key: 'data', label: t('Données'), Icon: Database }] as const;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', background: C.bgBase }}>
-      <div style={{ flexShrink: 0, padding: '14px 20px 0', background: C.bgCard, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 800, color: C.textPrimary, marginBottom: '12px' }}><Heart size={16} fill={C.red} color={C.red} /> {t('Ma Collection')}</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', background: 'transparent' }}>
+      <div style={{ flexShrink: 0, padding: '14px 20px 0', background: C.glassBar, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}><Heart size={20} fill={C.goldBright} color={C.goldBright} style={{ filter: 'drop-shadow(0 0 6px rgba(255,197,49,0.6))' }} /> <span className="title-gold" style={{ fontSize: '24px' }}>{t('Ma Collection')}</span></h1>
         {!user && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '12px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(201,162,39,0.06)', border: '1px solid rgba(201,162,39,0.2)' }}>
             <p style={{ flex: 1, minWidth: '200px', margin: 0, fontSize: '12px', color: C.textSecondary, lineHeight: 1.5 }}>
@@ -242,7 +242,7 @@ export const StatsView: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
               {[{ val: totalOwned, lbl: t('Possédés'), color: GREEN, Icon: Check }, { val: totalDupes, lbl: t('Doublons'), color: GOLD, Icon: Sparkles }, { val: `${globalPct}%`, lbl: t('Complétion'), color: BLUE, Icon: BarChart3 }, { val: EDITIONS.length, lbl: t('Albums'), color: PURPLE, Icon: Layers }].map(({ val, lbl, color, Icon }) => (
-                <div key={lbl} style={{ background: `linear-gradient(160deg, ${C.bgCard} 0%, rgba(10,20,40,0.8) 100%)`, border: `1px solid ${color}22`, borderRadius: '16px', padding: '16px', textAlign: 'center', boxShadow: `0 4px 20px ${color}10`, transition: 'transform 0.15s, box-shadow 0.15s' }}
+                <div key={lbl} style={{ background: C.glass, border: `1px solid ${color}22`, borderRadius: '16px', padding: '16px', textAlign: 'center', boxShadow: `0 4px 20px ${color}10`, transition: 'transform 0.15s, box-shadow 0.15s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 28px ${color}20`; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 20px ${color}10`; }}
                 >
@@ -255,7 +255,7 @@ export const StatsView: React.FC = () => {
               ))}
             </div>
 
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
               <h3 style={{ fontSize: '12px', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>{t('Complétion par album')}</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={completionData} barSize={18} margin={{ top: 4, right: 0, bottom: 0, left: -20 }} barCategoryGap="25%">
@@ -281,7 +281,7 @@ export const StatsView: React.FC = () => {
             </div>
 
             <div className="stats-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
+              <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
                 <h3 style={{ fontSize: '11px', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>{t('Répartition')}</h3>
                 <ResponsiveContainer width="100%" height={140}>
                   <PieChart>
@@ -315,7 +315,7 @@ export const StatsView: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
+              <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
                 <h3 style={{ fontSize: '11px', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>{t('Top albums')}</h3>
                 {top5.map((album, i) => (
                   <div key={album.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -344,7 +344,7 @@ export const StatsView: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
             {/* Export */}
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', fontWeight: 700, color: C.textPrimary, marginBottom: '6px' }}><Download size={14} /> {t('Exporter')}</h3>
               <p style={{ fontSize: '12px', color: C.textTertiary, marginBottom: '14px', lineHeight: 1.6 }}>
                 <strong style={{ color: C.textSecondary }}>JSON</strong> = {t('sauvegarde complète, à réimporter dans PaniniBase uniquement.')}<br />
@@ -357,7 +357,7 @@ export const StatsView: React.FC = () => {
             </div>
 
             {/* Import */}
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', fontWeight: 700, color: C.textPrimary, marginBottom: '6px' }}><Upload size={14} /> {t('Importer')}</h3>
               <p style={{ fontSize: '12px', color: C.textTertiary, marginBottom: '12px', lineHeight: 1.6 }}>
                 {t('Utilise un fichier exporté depuis PaniniBase. Pour le CSV, ne change pas les colonnes')} <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 4px', borderRadius: '4px' }}>EditionId</code> {t('et')} <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 4px', borderRadius: '4px' }}>Code</code>.
@@ -404,13 +404,13 @@ export const StatsView: React.FC = () => {
             </div>
 
             {/* Reset */}
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', fontWeight: 700, color: C.textPrimary, marginBottom: '6px' }}><Trash2 size={14} /> {t('Réinitialiser')}</h3>
               <p style={{ fontSize: '12px', color: C.textTertiary, marginBottom: '14px', lineHeight: 1.6 }}>{user ? t('Efface toute ta collection, sur cet appareil et sur ton compte. Irréversible.') : t('Efface toute ta collection. Irréversible.')}</p>
               <button className="btn-tactile" onClick={() => { if (confirm(t('Effacer toute la collection ?'))) clearCollection(); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.2)', color: RED, fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}><Trash2 size={14} /> {t('Effacer ma collection')}</button>
             </div>
 
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
               <h3 style={{ fontSize: '12px', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>{t('Résumé')}</h3>
               {[[t('Stickers possédés'), totalOwned, GREEN], [t('Doublons'), totalDupes, GOLD], [t('Albums commencés'), completionData.filter((d) => d.owned > 0).length, BLUE], [t('Albums terminés'), completionData.filter((d) => d.pct === 100).length, GOLD]].map(([label, val, color]) => (
                 <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>

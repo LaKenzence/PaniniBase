@@ -143,7 +143,7 @@ export const VirtualStickerGrid = forwardRef<VirtualStickerGridHandle, Props>(({
               <div key={virtualRow.key} style={{ ...base, display: 'flex', alignItems: 'flex-end', padding: `0 ${GAP / 2}px 8px` }}>
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', borderBottom: `1px solid ${done ? 'rgba(201,162,39,0.35)' : 'rgba(255,255,255,0.07)'}`, paddingBottom: '7px' }}>
                   <span style={{ fontSize: '20px', lineHeight: 1 }}>{row.flag}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: C.textPrimary, letterSpacing: '-0.2px' }}>{t(row.team)}</span>
+                  <span className="section-title">{t(row.team)}</span>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: done ? C.gold : C.textSecondary }}>
                     {row.owned}/{row.total}{done ? ' ✓' : ''}
                   </span>

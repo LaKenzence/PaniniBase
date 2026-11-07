@@ -35,7 +35,7 @@ export const LanguageMenu: React.FC = () => {
         <Globe size={14} /><span style={{ fontSize: '14px', lineHeight: 1 }}>{current.flag}</span>
       </button>
       {open && (
-        <div role="menu" className="popover-in" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 100, minWidth: '160px', padding: '6px', background: C.bgElevated, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)' }}>
+        <div role="menu" className="popover-in" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 100, minWidth: '160px', padding: '6px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)' }}>
           {LANGS.map((l) => (
             <button
               key={l.id}

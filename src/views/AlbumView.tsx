@@ -342,7 +342,7 @@ export const AlbumView: React.FC = () => {
       {showConfetti && <Confetti />}
 
       {notification && (
-        <div role="status" aria-live="polite" className="album-toast" style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)', zIndex: 95, display: 'flex', alignItems: 'center', gap: '12px', padding: toastUndo ? '6px 6px 6px 16px' : '10px 16px', borderRadius: '24px', background: C.bgElevated, border: '1px solid rgba(201,162,39,0.4)', color: C.gold, fontSize: '13px', fontWeight: 600, boxShadow: '0 8px 24px rgba(0,0,0,0.6)', animation: 'fadeIn 0.2s ease', whiteSpace: 'nowrap' }}>
+        <div role="status" aria-live="polite" className="album-toast" style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)', zIndex: 95, display: 'flex', alignItems: 'center', gap: '12px', padding: toastUndo ? '6px 6px 6px 16px' : '10px 16px', borderRadius: '24px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(201,162,39,0.4)', color: C.gold, fontSize: '13px', fontWeight: 600, boxShadow: '0 8px 24px rgba(0,0,0,0.6)', animation: 'fadeIn 0.2s ease', whiteSpace: 'nowrap' }}>
           {notification}
           {toastUndo && (
             <button className="btn-tactile" onClick={undoFromToast} style={{ minHeight: '36px', padding: '0 14px', borderRadius: '18px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: C.textPrimary, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
@@ -353,13 +353,13 @@ export const AlbumView: React.FC = () => {
       )}
 
       {/* ── Toolbar compacte ── */}
-      <div style={{ flexShrink: 0, padding: '10px 16px', background: C.bgCard, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'relative', zIndex: 30 }}>
+      <div style={{ flexShrink: 0, padding: '10px 16px', background: C.glassBar, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'relative', zIndex: 30 }}>
 
         {/* Ligne 1 : titre + actions principales */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
           <button className="btn-tactile" onClick={goHome} aria-label={t('Retour à la liste des albums')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: C.textSecondary, fontSize: '11px', cursor: 'pointer' }}>{t('← Albums')}</button>
           <span style={{ fontSize: '18px' }}>{edition.hostFlag}</span>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: C.textPrimary }}>{albumName(edition.label, t)}</span>
+          <span className="title-gold" style={{ fontSize: '19px' }}>{albumName(edition.label, t)}</span>
           <span style={{ fontSize: '11px', fontWeight: 800, color: progressColor }}>{pct}%</span>
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -368,7 +368,7 @@ export const AlbumView: React.FC = () => {
             <div ref={moreRef} style={{ position: 'relative' }}>
               <button className="btn-tactile" onClick={() => setShowMore((v) => !v)} title={t("Plus d'actions")} aria-label={t("Plus d'actions")} aria-haspopup="menu" aria-expanded={showMore} style={iconBtnStyle(showMore || showBulkInput || selectMode)}><MoreHorizontal size={18} /></button>
               {showMore && (
-                <div role="menu" className="popover-in" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40, width: '240px', background: C.bgElevated, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', padding: '6px' }}>
+                <div role="menu" className="popover-in" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40, width: '240px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', padding: '6px' }}>
                   {moreItems.map(({ Icon, label, hint, active, disabled, onClick }) => (
                     <button
                       key={label}
@@ -420,7 +420,7 @@ export const AlbumView: React.FC = () => {
 
             {/* Popover */}
             {showFilters && (
-              <div className="popover-in" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40, width: '300px', background: C.bgElevated, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', padding: '14px' }}>
+              <div className="popover-in" style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40, width: '300px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', padding: '14px' }}>
 
                 {/* Statut */}
                 <p style={{ fontSize: '11px', fontWeight: 700, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>{t('Statut')}</p>
@@ -536,7 +536,7 @@ export const AlbumView: React.FC = () => {
 
       {/* ── Body ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 1, overflow: 'hidden', background: C.bgBase, position: 'relative' }}>
+        <div style={{ flex: 1, overflow: 'hidden', background: 'transparent', position: 'relative' }}>
           {!albumReady ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px', color: C.textTertiary }}>
               <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.08)', borderTopColor: C.gold, animation: 'spin 0.7s linear infinite' }} />
@@ -607,7 +607,7 @@ export const AlbumView: React.FC = () => {
       {!selectMode && selectedSticker && (
         <div className="mobile-detail-sheet" style={{ position: 'fixed', inset: 0, zIndex: 90, display: 'none', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(4,8,20,0.85)', backdropFilter: 'blur(8px)' }} onClick={(e) => e.target === e.currentTarget && selectSticker(null)}>
           <div
-            style={{ background: C.bgCard, borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px 24px 0 0', maxHeight: '80vh', overflowY: 'auto' }}
+            style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px 24px 0 0', maxHeight: '80vh', overflowY: 'auto' }}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => { touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
             onTouchEnd={(e) => {

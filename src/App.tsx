@@ -16,6 +16,7 @@ import { useEditions } from './hooks/useEditionData';
 import { LegalModal } from './components/LegalModal';
 import { C } from './theme';
 import { LanguageMenu } from './components/LanguageMenu';
+import { GalaxyBackdrop } from './components/Cosmic';
 import { useT, useLangStore } from './i18n';
 const StatsView = lazy(() => import('./views/StatsView').then(m => ({ default: m.StatsView })));
 
@@ -166,7 +167,7 @@ export default function App() {
           style={{
             position: 'fixed', inset: 0, zIndex: 999,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            background: C.bgBase,
+            background: 'transparent',
           }}
         >
           <div className="splash-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
@@ -177,6 +178,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ── Fond galaxie : plein sur l'accueil, discret sur les écrans de travail ── */}
+      <GalaxyBackdrop calm={!(activeTab === 'home' && view === 'home')} />
 
       {/* ── Bandeau hors ligne ── */}
       {isOffline && (
@@ -210,22 +214,22 @@ export default function App() {
       )}
 
       {/* ── Topbar ── */}
-      <header style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '12px', padding: '0 16px', height: '52px', background: 'linear-gradient(180deg, #0e1a30 0%, #0a1525 100%)', borderBottom: '1px solid rgba(255,255,255,0.07)', boxShadow: '0 1px 0 rgba(0,0,0,0.4)', zIndex: 20, position: 'relative' }}>
+      <header className="topbar-glass" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', padding: '0 20px', height: '60px', zIndex: 20, position: 'relative' }}>
 
         <button onClick={() => handleNav('home')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
-          <img src="/logo.svg" alt="" style={{ width: '22px', height: '22px', borderRadius: '6px' }} />
-          <span style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '-0.3px', color: C.textPrimary }}>Panini<span style={{ color: C.gold }}>Base</span></span>
-          <span style={{ fontSize: '8px', fontWeight: 700, padding: '2px 5px', borderRadius: '4px', background: 'rgba(201,162,39,0.15)', border: '1px solid rgba(201,162,39,0.3)', color: C.gold, letterSpacing: '0.8px' }}>BETA</span>
+          <img src="/logo.svg" alt="" style={{ width: '28px', height: '28px', borderRadius: '8px', filter: 'drop-shadow(0 0 8px rgba(255,190,50,0.45))' }} />
+          <span style={{ fontSize: '19px', fontWeight: 900, letterSpacing: '-0.5px', color: C.textPrimary }}>Panini<span style={{ color: '#ffc531' }}>Base</span></span>
+          <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '5px', background: 'rgba(255,197,49,0.12)', border: '1px solid rgba(255,197,49,0.5)', color: '#ffc531', letterSpacing: '0.8px' }}>BETA</span>
         </button>
 
-        <div className="desktop-search" style={{ flex: 1, maxWidth: '300px' }}>
+        <div className="desktop-search" style={{ flex: 1, maxWidth: '560px', margin: '0 auto' }}>
           <GlobalSearch />
         </div>
 
-        <nav className="desktop-nav" style={{ display: 'flex', gap: '4px', marginLeft: 'auto', flexShrink: 0 }}>
+        <nav className="desktop-nav" style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
           {navItems.map(({ key, Icon, label }) => (
-            <button key={key} className="btn-tactile" onClick={() => handleNav(key)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '11.5px', fontWeight: isNavActive(key) ? 600 : 400, color: isNavActive(key) ? C.textPrimary : C.textSecondary, background: isNavActive(key) ? 'rgba(255,255,255,0.07)' : 'transparent', border: `1px solid ${isNavActive(key) ? 'rgba(255,255,255,0.12)' : 'transparent'}`, cursor: 'pointer', transition: 'all 0.12s' }}>
-              <Icon size={16} />{label}<NavBadge navKey={key} />
+            <button key={key} className={`btn-tactile nav-tab${isNavActive(key) ? ' nav-tab--active' : ''}`} aria-current={isNavActive(key) ? 'page' : undefined} onClick={() => handleNav(key)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '8px 14px', borderRadius: '10px', fontSize: '13px', fontWeight: isNavActive(key) ? 700 : 500, color: isNavActive(key) ? '#fff' : C.textSecondary, background: 'transparent', border: '1px solid transparent', cursor: 'pointer', transition: 'color 0.12s' }}>
+              <Icon size={16} color={isNavActive(key) ? '#ffc531' : 'currentColor'} />{label}<NavBadge navKey={key} />
             </button>
           ))}
         </nav>
@@ -247,7 +251,7 @@ export default function App() {
                   <span style={{ fontSize: '11px', color: C.textTertiary, display: 'inline-block', transform: showUserMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>▼</span>
                 </button>
                 {showUserMenu && (
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 100, width: '220px', background: C.bgCard, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 16px 48px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 100, width: '220px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 16px 48px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
                     <div style={{ height: '2px', background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)` }} />
                     <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -272,14 +276,14 @@ export default function App() {
       </header>
 
       {showMobileSearch && (
-        <div className="mobile-search-bar" style={{ flexShrink: 0, padding: '8px 12px', background: C.bgCard, borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'relative', zIndex: 19 }}>
+        <div className="mobile-search-bar" style={{ flexShrink: 0, padding: '8px 12px', background: C.glassBar, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.07)', position: 'relative', zIndex: 19 }}>
           <GlobalSearch autoFocus onDone={() => setShowMobileSearch(false)} />
         </div>
       )}
 
-      <main style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+      <main style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <Suspense fallback={
-          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', background: C.bgBase }}>
+          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
             <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: '3px solid rgba(201,162,39,0.2)', borderTopColor: C.gold, animation: 'spin 0.7s linear infinite' }} />
           </div>
         }>
@@ -288,7 +292,7 @@ export default function App() {
       </main>
 
       {/* ── Mobile bottom nav ── */}
-      <nav className="mobile-nav" style={{ flexShrink: 0, display: 'flex', background: C.bgCard, borderTop: '1px solid rgba(255,255,255,0.07)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav className="mobile-nav" style={{ flexShrink: 0, display: 'flex', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderTop: '1px solid rgba(255,255,255,0.07)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {navItems.map(({ key, Icon, label }) => (
           <button key={key} onClick={() => handleNav(key)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', color: isNavActive(key) ? C.gold : C.textSecondary, transition: 'color 0.15s' }}>
             <span style={{ position: 'relative', display: 'flex' }}>
@@ -307,7 +311,7 @@ export default function App() {
       {/* ── Mobile user sheet ── */}
       {showMobileSheet && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(4,8,20,0.85)', backdropFilter: 'blur(12px)' }} onClick={(e) => e.target === e.currentTarget && setShowMobileSheet(false)}>
-          <div style={{ background: C.bgCard, borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px 24px 0 0', padding: '0 0 40px' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px 24px 0 0', padding: '0 0 40px' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ height: '2px', background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`, borderRadius: '24px 24px 0 0', marginBottom: '16px' }} />
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}><div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.15)' }} /></div>
             <div style={{ margin: '0 20px 20px', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -345,7 +349,7 @@ export default function App() {
       {badgeToast && (
         <div style={{
           position: 'fixed', top: '70px', left: '50%', transform: 'translateX(-50%)', zIndex: 250,
-          padding: '10px 18px', borderRadius: '20px', background: C.bgCard,
+          padding: '10px 18px', borderRadius: '20px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
           border: '1px solid rgba(201,162,39,0.4)', color: C.gold,
           fontSize: '13px', fontWeight: 600, boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
           animation: 'fadeIn 0.25s ease',

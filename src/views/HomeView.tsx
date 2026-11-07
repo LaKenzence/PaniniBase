@@ -1,11 +1,12 @@
 import React from 'react';
-import { Layers, Image as ImageIcon, Users, Copy, TrendingUp, ArrowRight, Flame } from 'lucide-react';
+import { Layers, Image as ImageIcon, Users, Copy, TrendingUp, ArrowRight, Flame, Trophy, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { EDITIONS, STICKERS_BY_EDITION, PLAYERS } from '../data/stickers';
 import { useUIStore, useCollectionStore } from '../store/index';
 import { useGlobalStats, useEditionStats } from '../hooks';
 import { useBadges } from '../hooks/useBadges';
 import { useDataVersion } from '../hooks/useEditionData';
 import { TrophyShelf } from '../components/TrophyShelf';
+import { Earth, LightTrails, HoloCard, StarFlares, cardImage } from '../components/Cosmic';
 import { C } from '../theme';
 import { clickable } from '../lib/a11y';
 import { useT, useLangStore, albumName } from '../i18n';
@@ -18,150 +19,142 @@ const STICKERS_2026 = EDITIONS.find((e) => e.id === '26')?.totalStickers ?? 0;
 /** Légendes de l'index joueurs, comptées au chargement du module : ensuite PLAYERS
  *  grossit avec chaque joueur des effectifs importés (des milliers). */
 const LEGENDS = Object.keys(PLAYERS).length;
-/** Étoiles du hero : positions tirées une seule fois, sinon elles sautent à chaque re-render. */
-const STARS = Array.from({ length: 30 }, () => ({ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, opacity: 0.15 + Math.random() * 0.3 }));
+/**
+ * Mascottes / illustrations d'albums : dépose une image nommée d'après l'année
+ * dans src/assets/albums/ (ex. 1998.webp, 2026.png), fond transparent de préférence.
+ * Seuls les fichiers présents sont référencés ; sinon on affiche un ballon dessiné.
+ */
+const ALBUM_ART = import.meta.glob<string>('../assets/albums/*.{webp,png,jpg,jpeg,svg}', { eager: true, import: 'default' });
+const artForYear = (year: number) => Object.entries(ALBUM_ART).find(([p]) => p.split('/').pop()!.startsWith(`${year}.`))?.[1];
 
-// ── Carte Panini flottante décorative ────────────────────────────────────
-const FloatingCard: React.FC<{
-  flag: string; name: string; year: number; inner?: boolean;
-  style: React.CSSProperties;
-}> = ({ flag, name, year, inner, style }) => (
-  <div className={`floating-card${inner ? ' floating-card--inner' : ''}`} aria-hidden="true" style={{
-    position: 'absolute', width: '80px', borderRadius: '10px', overflow: 'hidden',
-    boxShadow: '0 12px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
-    background: 'linear-gradient(160deg, #1a2f5e 0%, #0d1a3a 100%)',
-    ...style,
-  }}>
-    {/* Sheen */}
-    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%)', pointerEvents: 'none' }} />
-    <div style={{ height: '90px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px' }}>
-      <span style={{ fontSize: '28px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>{flag}</span>
-      <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.8)', fontWeight: 700, textAlign: 'center', letterSpacing: '0.3px' }}>{name}</span>
-    </div>
-    <div style={{ background: 'rgba(201,162,39,0.9)', padding: '3px 0', textAlign: 'center', fontSize: '8px', fontWeight: 800, color: '#000', letterSpacing: '0.5px' }}>
-      {year}
-    </div>
-  </div>
+/** Ballon dessiné : illustration par défaut d'un album sans mascotte */
+const BallArt: React.FC = () => (
+  <svg viewBox="0 0 100 100" style={{ height: '78%' }} aria-hidden="true">
+    <defs>
+      <radialGradient id="ball-shade" cx="38%" cy="32%" r="70%">
+        <stop offset="0" stopColor="#ffffff" />
+        <stop offset="0.65" stopColor="#dfe4ee" />
+        <stop offset="1" stopColor="#8d96aa" />
+      </radialGradient>
+    </defs>
+    <circle cx="50" cy="50" r="44" fill="url(#ball-shade)" />
+    <g fill="#141a2c">
+      <polygon points="50,33 62,42 57.5,56 42.5,56 38,42" />
+      <polygon points="50,6.5 59,10 56,19 44,19 41,10" />
+      <polygon points="88,38 92,50 86,58 79,50 80,40" />
+      <polygon points="12,38 20,40 21,50 14,58 8,50" />
+      <polygon points="27,80 36,74 43,82 39,92 29,90" />
+      <polygon points="73,80 71,90 61,92 57,82 64,74" />
+    </g>
+    <g stroke="#141a2c" strokeWidth="1.6" fill="none" opacity="0.8">
+      <path d="M50 33 L50 19 M62 42 L80 40 M57.5 56 L64 74 M42.5 56 L36 74 M38 42 L20 40" />
+    </g>
+    <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1" />
+  </svg>
 );
 
-// ── Carte album premium ──────────────────────────────────────────────────
-
-const AlbumCard: React.FC<{ editionId: string }> = ({ editionId }) => {
+// ── Tuile d'album (carrousel) ────────────────────────────────────────────
+const AlbumTile: React.FC<{ editionId: string }> = ({ editionId }) => {
   const { goAlbum } = useUIStore();
   const t = useT();
   const edition = EDITIONS.find((e) => e.id === editionId)!;
   const { owned, pct } = useEditionStats(editionId);
-  const catalogued = (STICKERS_BY_EDITION[editionId] ?? []).length;
-  const color = pct === 100 ? C.gold : pct > 75 ? C.green : pct > 40 ? C.blue : pct > 0 ? C.orange : 'rgba(255,255,255,0.25)';
+  const art = artForYear(edition.year);
+  const color = pct === 100 ? '#ffc531' : pct > 0 ? C.green : 'transparent';
 
   return (
     <div
+      className="album-tile"
       {...clickable(() => goAlbum(editionId), t("Ouvrir l'album {album}", { album: albumName(edition.label, t) }) + (pct > 0 ? t(', {pct} % complété', { pct }) : ''))}
-      style={{
-        borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
-        background: '#0a1428',
-        border: '1px solid rgba(255,255,255,0.07)',
-        transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, border-color 0.2s',
-        position: 'relative',
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget;
-        el.style.transform = 'translateY(-6px) scale(1.03)';
-        el.style.boxShadow = `0 24px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.14), 0 0 30px ${color}22`;
-        el.style.borderColor = `${color}44`;
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget;
-        el.style.transform = 'none';
-        el.style.boxShadow = 'none';
-        el.style.borderColor = 'rgba(255,255,255,0.07)';
-      }}
+      style={{ background: edition.bgGradient }}
     >
-      {/* Cover */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', background: edition.bgGradient, overflow: 'hidden' }}>
-        {/* Noise overlay */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.04\'/%3E%3C/svg%3E")', opacity: 0.4 }} />
-        {/* Dark vignette */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%)' }} />
-        {/* Sheen diagonal */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 50%)', transition: 'opacity 0.2s' }} />
+      <div className="album-tile-light" />
+      <div className="album-tile-rays" />
+      <div className="album-tile-corner" />
 
-        {/* Sash */}
-        <div style={{ position: 'absolute', top: '12px', right: '-32px', width: '130px', padding: '3px 0', background: `linear-gradient(180deg, ${C.goldLight}, ${C.gold} 60%, #8a6e16)`, color: '#1a1206', fontSize: '7px', fontWeight: 800, letterSpacing: '1px', textAlign: 'center', transform: 'rotate(40deg)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)', zIndex: 2 }}>FIFA WORLD CUP</div>
-
-        <span style={{ position: 'relative', zIndex: 2, fontSize: '34px', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))', display: 'block', textAlign: 'center', paddingTop: '28px' }}>{edition.hostFlag}</span>
-        <span style={{ position: 'relative', zIndex: 2, display: 'block', textAlign: 'center', fontSize: '26px', fontWeight: 800, color: '#fff', textShadow: '0 2px 12px rgba(0,0,0,0.7)', letterSpacing: '-0.5px', marginTop: '4px' }}>{edition.year}</span>
-        <span style={{ position: 'relative', zIndex: 2, display: 'block', textAlign: 'center', fontSize: '8px', color: 'rgba(255,255,255,0.7)', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: '2px' }}>{t(edition.hostCountry)}</span>
-
-        <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 3, fontSize: '8px', padding: '2px 6px', borderRadius: '6px', background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)' }}>
-          {edition.totalStickers}
-        </div>
-
-        {/* Progress */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '5px', zIndex: 3, background: 'rgba(0,0,0,0.4)' }}>
-          {pct > 0 && <div style={{ height: '100%', width: `${pct}%`, background: color, boxShadow: `0 0 10px ${color}`, transition: 'width 0.7s ease' }} />}
-        </div>
+      <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 4, fontSize: '11px', fontWeight: 800, padding: '3px 7px', borderRadius: '6px', background: 'rgba(5,8,20,0.75)', color: '#fff', border: '1px solid rgba(255,255,255,0.12)' }}>
+        {edition.totalStickers}
       </div>
 
-      {/* Info */}
-      <div style={{ padding: '10px 12px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 600, color: C.textPrimary, marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{albumName(edition.label, t)}</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: C.textTertiary }}>
-            {catalogued > 0 ? `${owned} / ${edition.totalStickers}` : t('Données à venir')}
-          </span>
-          {pct > 0 && <span style={{ fontSize: '11px', fontWeight: 700, color }}>{pct}%</span>}
-        </div>
+      <div className="album-tile-mascot">{art ? <img src={art} alt="" loading="lazy" /> : <BallArt />}</div>
+
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: pct > 0 ? '14px' : '10px', zIndex: 2, textAlign: 'center', padding: '0 8px' }}>
+        <div className="album-tile-year">{edition.year}</div>
+        <div className="album-tile-country">{t(edition.hostCountry)}</div>
       </div>
+
+      {pct > 0 && (
+        <div title={`${owned} / ${edition.totalStickers}`} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '5px', zIndex: 3, background: 'rgba(0,0,0,0.5)' }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: color, boxShadow: `0 0 10px ${color}`, transition: 'width 0.7s ease' }} />
+        </div>
+      )}
     </div>
   );
 };
 
-const AlbumCardSkeleton: React.FC = () => (
-  <div style={{ borderRadius: '16px', overflow: 'hidden', background: '#0a1428', border: '1px solid rgba(255,255,255,0.07)' }}>
-    <div className="skeleton" style={{ width: '100%', aspectRatio: '3/4', borderRadius: 0 }} />
-    <div style={{ padding: '10px 12px' }}>
-      <div className="skeleton" style={{ height: '11px', width: '70%', marginBottom: '8px' }} />
-      <div className="skeleton" style={{ height: '9px', width: '50%' }} />
+const AlbumTileSkeleton: React.FC = () => <div className="album-tile skeleton" style={{ border: '1px solid rgba(255,255,255,0.07)' }} />;
+
+// ── Carrousel horizontal + flèches ───────────────────────────────────────
+const AlbumRail: React.FC<{ loading?: boolean }> = ({ loading }) => {
+  const t = useT();
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = React.useState({ start: true, end: false });
+  const update = React.useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setEdges({ start: el.scrollLeft < 8, end: el.scrollLeft + el.clientWidth > el.scrollWidth - 8 });
+  }, []);
+  React.useEffect(() => {
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [update]);
+  const scroll = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.8, behavior: 'smooth' });
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={ref} className="album-rail" onScroll={update}>
+        {loading
+          ? Array.from({ length: 8 }).map((_, i) => <AlbumTileSkeleton key={i} />)
+          : EDITIONS_NEWEST_FIRST.map((ed) => <AlbumTile key={ed.id} editionId={ed.id} />)}
+      </div>
+      {!edges.start && <button className="rail-arrow" style={{ left: '-6px' }} onClick={() => scroll(-1)} aria-label={t('Albums précédents')}><ChevronLeft size={22} /></button>}
+      {!edges.end && <button className="rail-arrow" style={{ right: '-6px' }} onClick={() => scroll(1)} aria-label={t('Albums suivants')}><ChevronRight size={22} /></button>}
     </div>
+  );
+};
+
+// ── Carte de stat en verre ───────────────────────────────────────────────
+const GlassStat: React.FC<{
+  Icon: typeof Layers; val: string | number; lbl: string; color: string; sub: string; onClick?: () => void;
+}> = ({ Icon, val, lbl, color, sub, onClick }) => (
+  <div className="glass-stat home-stat" {...(onClick ? clickable(onClick, `${val} ${lbl}`) : {})}>
+    <div className="home-stat-icon" style={{ width: '54px', height: '54px', borderRadius: '14px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color, background: `linear-gradient(145deg, ${color}38, ${color}10)`, border: `1px solid ${color}55`, boxShadow: `0 0 22px ${color}30` }}>
+      <Icon size={26} />
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="home-stat-val" style={{ fontSize: '28px', fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.5px' }}>{val}</div>
+      <div style={{ fontSize: '14px', color: '#dfe5ff', marginTop: '4px', fontWeight: 500 }}>{lbl}</div>
+      <div style={{ fontSize: '11.5px', color, marginTop: '3px', fontWeight: 700 }}>{sub}</div>
+    </div>
+    {onClick && <ChevronRight size={20} color="rgba(255,255,255,0.7)" style={{ flexShrink: 0 }} />}
   </div>
 );
 
-// ── Stat card avec sous-titre ────────────────────────────────────────────
-const StatCard: React.FC<{
-  Icon: typeof Layers; val: string | number; lbl: string; color: string;
-  sub?: string; subColor?: string; onClick?: () => void;
-}> = ({ Icon, val, lbl, color, sub, subColor, onClick }) => (
-  <div
-    className="home-stat"
-    {...(onClick ? clickable(onClick, `${val} ${lbl}`) : {})}
-    style={{
-      display: 'flex', alignItems: 'center', gap: '14px',
-      padding: '16px 20px', borderRadius: '18px',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      backdropFilter: 'blur(10px)',
-      cursor: onClick ? 'pointer' : 'default',
-      transition: 'border-color 0.15s, background 0.15s',
-      minWidth: '190px', flex: 1,
-    }}
-    onMouseEnter={(e) => { if (onClick) { e.currentTarget.style.borderColor = `${color}44`; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; } }}
-    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-  >
-    <div className="home-stat-icon" style={{ width: '44px', height: '44px', borderRadius: '14px', background: `${color}18`, border: `1px solid ${color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color }}>
-      <Icon size={20} />
-    </div>
-    <div style={{ textAlign: 'left', minWidth: 0 }}>
-      <div className="home-stat-val" style={{ fontSize: '22px', fontWeight: 800, color: C.textPrimary, lineHeight: 1, letterSpacing: '-0.5px' }}>{val}</div>
-      <div style={{ fontSize: '11px', color: C.textTertiary, marginTop: '3px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</div>
-      {sub && <div style={{ fontSize: '11px', color: subColor ?? color, marginTop: '4px', fontWeight: 600 }}>{sub}</div>}
-    </div>
+/** Décor du hero : traînées dorées, Terre, cartes holographiques */
+const HeroScene: React.FC<{ cards?: boolean }> = ({ cards = true }) => (
+  <div className="hero-scene" aria-hidden="true">
+    <StarFlares />
+    <Earth className="hero-earth" />
+    <LightTrails />
+    {cards && <>
+      <HoloCard kind="trophy" image={cardImage('card-trophy')} tone="#3a55ff" style={{ left: '5.5%', top: '9%', rotate: '-4deg', width: '140px' }} />
+      <HoloCard kind="player" image={cardImage('card-hero')} tone="#5a3df0" className="holo-card--side" style={{ left: '16.5%', top: '30%', rotate: '9deg', width: '118px', animationDelay: '-2s' }} />
+      <HoloCard kind="player" image={cardImage('card-2')} tone="#2c6df0" style={{ right: '7%', top: '12%', rotate: '6deg', width: '96px', animationDelay: '-4s' }} />
+      <HoloCard kind="player" image={cardImage('card-7')} tone="#3f5cf5" className="holo-card--side" style={{ right: '16%', top: '34%', rotate: '-4deg', width: '112px', animationDelay: '-1s' }} />
+      <HoloCard kind="player" image={cardImage('card-5')} tone="#c47a1e" style={{ right: '3.5%', top: '50%', rotate: '8deg', width: '128px', animationDelay: '-5s' }} />
+    </>}
   </div>
-);
-
-// ── Halo flou de lumière ────────────────────────────────────────────────
-const Halo: React.FC<{ x: string; y: string; color: string; size: number; opacity?: number }> = ({ x, y, color, size, opacity = 0.15 }) => (
-  <div style={{ position: 'absolute', left: x, top: y, width: size, height: size, borderRadius: '50%', background: color, opacity, filter: `blur(${size * 0.4}px)`, transform: 'translate(-50%, -50%)', pointerEvents: 'none' }} />
 );
 
 // ── Anneau de progression ────────────────────────────────────────────────
@@ -246,7 +239,7 @@ const MyCollection: React.FC = () => {
         </div>
 
         {/* Presque complètes */}
-        <div style={{ borderRadius: '20px', padding: '18px', background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ borderRadius: '20px', padding: '18px', background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: C.textSecondary, letterSpacing: '1px', textTransform: 'uppercase' }}><Flame size={13} color={C.orange} /> {t('Presque complètes')}</p>
           {almostDone.length === 0 && <p style={{ fontSize: '12px', color: C.textTertiary }}>{t('Colle tes premiers stickers pour voir les équipes à finir.')}</p>}
           {almostDone.map((team) => {
@@ -280,113 +273,73 @@ const MyCollection: React.FC = () => {
 
 export const HomeView: React.FC<{ loading?: boolean }> = ({ loading }) => {
   const { totalOwned } = useGlobalStats();
-  const { goAlbum } = useUIStore();
+  const { goAlbum, setActiveTab } = useUIStore();
   const t = useT();
   const lang = useLangStore((s) => s.lang);
   const hasCollection = totalOwned > 0;
-
-  const totalYears = 2026 - 1970;
-
-  const floatingCards = [
-    { flag: '🇧🇷', name: t('Brésil') + ' 1970', year: 1970, style: { left: '4%', top: '10%', transform: 'rotate(-14deg)', animation: 'float-a 6s ease-in-out infinite' } },
-    { flag: '🇦🇷', name: t('Argentine') + ' 1986', year: 1986, style: { left: '8%', top: '52%', transform: 'rotate(10deg)', animation: 'float-b 7s ease-in-out infinite' } },
-    { flag: '🇫🇷', name: t('France') + ' 1998', year: 1998, inner: true, style: { left: '14%', top: '28%', transform: 'rotate(-6deg)', animation: 'float-c 5.5s ease-in-out infinite' } },
-    { flag: '🇩🇪', name: t('Allemagne') + ' 2014', year: 2014, style: { right: '5%', top: '8%', transform: 'rotate(12deg)', animation: 'float-b 6.5s ease-in-out infinite' } },
-    { flag: '🇮🇹', name: t('Italie') + ' 1982', year: 1982, inner: true, style: { right: '11%', top: '46%', transform: 'rotate(-9deg)', animation: 'float-a 7.5s ease-in-out infinite' } },
-    { flag: '🇳🇱', name: t('Pays-Bas') + ' 1974', year: 1974, style: { right: '3%', top: '25%', transform: 'rotate(6deg)', animation: 'float-c 8s ease-in-out infinite' } },
-  ];
+  const railRef = React.useRef<HTMLDivElement>(null);
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', background: C.bgBase }}>
+    <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
 
-      {hasCollection && <MyCollection />}
+      {hasCollection && (
+        <div style={{ position: 'relative' }}>
+          <HeroScene cards={false} />
+          <div style={{ position: 'relative', zIndex: 2 }}><MyCollection /></div>
+        </div>
+      )}
 
       {/* ── HERO (nouveaux visiteurs) ── */}
-      {!hasCollection && <div className="home-hero" style={{ position: 'relative', padding: '60px 24px 52px', textAlign: 'center', overflow: 'hidden', minHeight: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      {!hasCollection && (
+        <section className="home-hero" style={{ position: 'relative', padding: '36px 24px 40px', textAlign: 'center', minHeight: '470px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <HeroScene />
 
-        {/* Fond cosmique — couches */}
-        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse 100% 80% at 50% 0%, #0e1f4a 0%, ${C.bgBase} 65%)` }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 40% at 20% 80%, rgba(100,0,150,0.12) 0%, transparent 70%)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 30% at 80% 90%, rgba(0,80,180,0.1) 0%, transparent 70%)' }} />
+          <div style={{ position: 'relative', zIndex: 10, width: '100%' }}>
+            <div className="hero-eyebrow home-eyebrow" style={{ marginBottom: '18px' }}>
+              <Trophy size={16} color="#ffc531" /> World Cup Edition
+            </div>
 
-        {/* Halos lumineux */}
-        <Halo x="50%" y="0%" color="#3060ff" size={600} opacity={0.08} />
-        <Halo x="20%" y="60%" color="#8000ff" size={300} opacity={0.07} />
-        <Halo x="80%" y="70%" color="#0040ff" size={250} opacity={0.06} />
+            <h1 className="hero-wordmark" style={{ fontSize: 'clamp(46px, 9vw, 92px)', color: '#fff', marginBottom: '10px' }}>
+              Panini<span className="gold">Base</span>
+            </h1>
 
-        {/* Étoiles — points lumineux */}
-        {STARS.map((st, i) => (
-          <div key={i} style={{ position: 'absolute', width: '1.5px', height: '1.5px', borderRadius: '50%', background: '#fff', pointerEvents: 'none', ...st }} />
-        ))}
+            <p style={{ fontSize: '17px', color: '#d6dcf5', marginBottom: '14px', letterSpacing: '0.2px', textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>
+              {t('Toutes les cartes Panini Coupe du Monde')}
+            </p>
+            <p className="hero-years home-years" style={{ marginBottom: '26px' }}>1970 — 2026</p>
 
-        {/* Cartes flottantes */}
-        {floatingCards.map((c, i) => <FloatingCard key={i} {...c} />)}
+            <div style={{ marginBottom: '32px' }}>
+              <button className="hero-cta" onClick={() => goAlbum('26')}>
+                <Play size={16} fill="currentColor" /> {t("Commencer l'album 2026")} <ArrowRight size={18} />
+              </button>
+            </div>
 
-        {/* Contenu central */}
-        <div style={{ position: 'relative', zIndex: 10 }}>
-
-          {/* Eyebrow */}
-          <div className="home-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 18px', borderRadius: '20px', background: 'rgba(52,100,219,0.15)', border: '1px solid rgba(52,100,219,0.3)', marginBottom: '22px', backdropFilter: 'blur(8px)' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '2px', color: '#7EB3FF', textTransform: 'uppercase' }}>World Cup Edition</span>
+            <div className="home-stats" style={{ display: 'flex', justifyContent: 'center', gap: '18px', flexWrap: 'wrap', maxWidth: '1160px', margin: '0 auto' }}>
+              <GlassStat Icon={Layers} val={EDITIONS.length} lbl={t('Albums')} color="#ffc531" sub={t('De Mexique 1970 à 2026')}
+                onClick={() => railRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+              <GlassStat Icon={ImageIcon} val={TOTAL_STICKERS.toLocaleString(lang)} lbl={t('Stickers référencés')} color="#3fb6ff" sub={t('dont {n} en 2026', { n: STICKERS_2026.toLocaleString(lang) })}
+                onClick={() => goAlbum('26')} />
+              <GlassStat Icon={Users} val={LEGENDS} lbl={t('Légendes suivies')} color="#2fe08a" sub={t("d'une Coupe du Monde à l'autre")}
+                onClick={() => setActiveTab('collection')} />
+            </div>
           </div>
+        </section>
+      )}
 
-          {/* Wordmark */}
-          <h1 style={{ fontSize: 'clamp(36px, 8vw, 60px)', fontWeight: 900, letterSpacing: '-2px', lineHeight: 1, marginBottom: '16px', color: C.textPrimary }}>
-            Panini<span style={{ background: `linear-gradient(135deg, ${C.goldLight} 0%, ${C.gold} 50%, #8a6e16 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Base</span>
-          </h1>
-
-          <p style={{ fontSize: '15px', color: C.textSecondary, marginBottom: '10px', letterSpacing: '0.2px' }}>
-            {t('Toutes les cartes Panini Coupe du Monde')}
-          </p>
-          <p className="home-years" style={{ fontSize: '22px', fontWeight: 700, color: C.textPrimary, marginBottom: '32px', letterSpacing: '-0.5px' }}>1970 — 2026</p>
-
-          {/* Badge éditions */}
-          <div className="home-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 20px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '40px', backdropFilter: 'blur(8px)' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: C.gold, display: 'inline-block' }} />
-            <span style={{ fontSize: '12px', fontWeight: 600, color: C.textSecondary }}>{t('{n} ÉDITIONS', { n: EDITIONS.length })}</span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: C.textSecondary }}>{t('{n} ANS DE PASSION', { n: totalYears })}</span>
-          </div>
-
-          {/* Appel à l'action : l'album de l'année */}
-          <div style={{ marginBottom: '28px' }}>
-            <button className="btn-tactile btn-gold" onClick={() => goAlbum('26')} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 24px', borderRadius: '14px', border: 'none', fontSize: '15px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 30px rgba(201,162,39,0.35)' }}>
-              🌎 {t("Commencer l'album 2026")} <ArrowRight size={17} />
-            </button>
-          </div>
-
-          {/* Stats cards */}
-          <div className="home-stats" style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', maxWidth: '920px', margin: '0 auto' }}>
-            <StatCard Icon={Layers} val={EDITIONS.length} lbl={t('Albums')} color={C.gold} sub={t('De Mexique 1970 à 2026')} subColor={C.gold} />
-            <StatCard Icon={ImageIcon} val={TOTAL_STICKERS.toLocaleString(lang)} lbl={t('Stickers référencés')} color={C.blue} sub={t('dont {n} en 2026', { n: STICKERS_2026.toLocaleString(lang) })} subColor={C.blue} />
-            <StatCard Icon={Users} val={LEGENDS} lbl={t('Légendes suivies')} color={C.green} sub={t("d'une Coupe du Monde à l'autre")} subColor={C.green} />
-          </div>
-        </div>
-      </div>}
-
-      {/* ── Albums grid ── */}
-      <div className="home-albums" style={{ padding: '28px 20px 40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: C.textPrimary, letterSpacing: '-0.3px' }}>{t('Choisir un album')}</h2>
-            <p style={{ fontSize: '11px', color: C.textTertiary, marginTop: '3px' }}>{t('{n} éditions', { n: EDITIONS.length })} · 1970 – 2026</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: C.textTertiary }}>
-            <TrendingUp size={13} />
+      {/* ── Albums ── */}
+      <section ref={railRef} className="home-albums" style={{ position: 'relative', zIndex: 2, padding: '8px 28px 48px', scrollMarginTop: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.3px' }}>
+            <Trophy size={22} color="#ffc531" style={{ filter: 'drop-shadow(0 0 6px rgba(255,197,49,0.6))' }} /> {t('Choisir un album')}
+          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#d6dcf5' }}>
+            <TrendingUp size={16} />
             <span>{t('Progression globale')}</span>
-            <span style={{ fontWeight: 700, color: C.gold }}>
-              {Math.round((totalOwned / TOTAL_STICKERS) * 100)}%
-            </span>
+            <span style={{ fontWeight: 800, color: '#ffc531' }}>{Math.round((totalOwned / TOTAL_STICKERS) * 100)}%</span>
           </div>
         </div>
-
-        <div style={{ display: 'grid', gap: '14px', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => <AlbumCardSkeleton key={i} />)
-            : EDITIONS_NEWEST_FIRST.map((ed) => <AlbumCard key={ed.id} editionId={ed.id} />)
-          }
-        </div>
-      </div>
+        <AlbumRail loading={loading} />
+      </section>
     </div>
   );
 };

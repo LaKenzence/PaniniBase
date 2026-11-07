@@ -23,6 +23,14 @@ export const C = {
   bgCard:     '#0D1526',
   bgElevated: '#131E35',
 
+  // Surfaces « verre » posées sur le fond galaxie (DA galaxie + or)
+  glass:       'rgba(13,17,40,0.86)', // cartes, panneaux
+  glassBar:    'rgba(9,12,30,0.88)',  // barres d'outils en haut des vues
+  glassStrong: 'rgba(10,13,34,0.94)', // menus, modales, feuilles mobiles
+  glassBorder: 'rgba(150,165,255,0.16)',
+  goldBorder:  'rgba(255,197,49,0.35)',
+  goldBright:  '#FFC531',
+
   // Textes
   textPrimary:   '#F0F4FF',
   textSecondary: '#8A9BBF',

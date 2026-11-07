@@ -44,7 +44,6 @@ export const en: Record<string, string> = {
   'France': 'France',
   'Allemagne': 'Germany',
   'Italie': 'Italy',
-  'Pays-Bas': 'Netherlands',
   // Pays hôtes (noms d’albums)
   'Mexique': 'Mexico',
   'Espagne': 'Spain',
@@ -56,8 +55,6 @@ export const en: Record<string, string> = {
   'Qatar': 'Qatar',
   'USA/Canada/Mexique': 'USA/Canada/Mexico',
   'Toutes les cartes Panini Coupe du Monde': 'Every Panini World Cup sticker',
-  '{n} ÉDITIONS': '{n} EDITIONS',
-  '{n} ANS DE PASSION': '{n} YEARS OF PASSION',
   "Commencer l'album 2026": 'Start the 2026 album',
   'De Mexique 1970 à 2026': 'From Mexico 1970 to 2026',
   'Stickers référencés': 'Stickers listed',
@@ -65,11 +62,11 @@ export const en: Record<string, string> = {
   'Légendes suivies': 'Legends tracked',
   "d'une Coupe du Monde à l'autre": 'from one World Cup to the next',
   'Choisir un album': 'Choose an album',
-  '{n} éditions': '{n} editions',
+  'Albums précédents': 'Previous albums',
+  'Albums suivants': 'Next albums',
   'Progression globale': 'Overall progress',
   "Ouvrir l'album {album}": 'Open the {album} album',
   ', {pct} % complété': ', {pct}% complete',
-  'Données à venir': 'Data coming soon',
 
   // ── Album ──
   '← Albums': '← Albums',

@@ -91,7 +91,7 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
 
   if (success) return (
     <div style={overlay} role="dialog" aria-modal="true" aria-label={t('Vérifie tes emails')}>
-      <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '48px 36px', maxWidth: '380px', width: '100%', textAlign: 'center' }}>
+      <div style={{ background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '48px 36px', maxWidth: '380px', width: '100%', textAlign: 'center' }}>
         <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(46,204,113,0.12)', border: '2px solid rgba(46,204,113,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: C.green }}><Mail size={32} /></div>
         <h2 style={{ fontSize: '22px', fontWeight: 800, color: C.textPrimary, marginBottom: '10px' }}>{t('Vérifie tes emails')}</h2>
         <p style={{ fontSize: '14px', color: C.textSecondary, lineHeight: 1.6, marginBottom: '28px' }}>
@@ -108,7 +108,7 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
     <div style={overlay} role="dialog" aria-modal="true" aria-label={t('Connexion')} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div style={{
         width: '100%', maxWidth: '440px',
-        background: C.bgCard,
+        background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: '24px',
         overflow: 'hidden',

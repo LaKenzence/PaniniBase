@@ -127,7 +127,7 @@ export const GlobalSearch: React.FC<Props> = ({ autoFocus, onDone }) => {
       {open && debouncedQuery.length >= 2 && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, minWidth: onDone ? 0 : '300px',
-          background: C.bgCard, border: '1px solid rgba(255,255,255,0.1)',
+          background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '14px', boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
           zIndex: 200, overflow: 'hidden', maxHeight: '360px', overflowY: 'auto',
         }}>

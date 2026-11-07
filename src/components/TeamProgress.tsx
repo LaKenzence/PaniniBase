@@ -40,7 +40,7 @@ export const TeamProgress: React.FC<Props> = ({ teams, onPick, onClose }) => {
 
   return (
     <div role="dialog" aria-modal="true" aria-label={t('Progression par équipe')} onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: 'fixed', inset: 0, zIndex: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(4,8,20,0.8)', backdropFilter: 'blur(6px)' }}>
-      <div className="popover-in" style={{ width: '100%', maxWidth: '440px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: C.bgCard, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', boxShadow: '0 24px 60px rgba(0,0,0,0.6)', overflow: 'hidden' }}>
+      <div className="popover-in" style={{ width: '100%', maxWidth: '440px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', boxShadow: '0 24px 60px rgba(0,0,0,0.6)', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: '15px', fontWeight: 800, color: C.textPrimary, margin: 0 }}>{t('Progression par équipe')}</h2>

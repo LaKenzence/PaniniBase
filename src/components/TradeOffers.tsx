@@ -64,7 +64,7 @@ export const TradeOffers: React.FC<Props> = ({ entryLabel }) => {
       )}
 
       {offers.map((o) => (
-        <div key={o.id} style={{ background: C.bgCard, border: `1px solid ${STATUS_COLOR[o.status]}40`, borderRadius: '16px', overflow: 'hidden', opacity: o.status === 'declined' || o.status === 'cancelled' ? 0.6 : 1 }}>
+        <div key={o.id} style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: `1px solid ${STATUS_COLOR[o.status]}40`, borderRadius: '16px', overflow: 'hidden', opacity: o.status === 'declined' || o.status === 'cancelled' ? 0.6 : 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <ArrowLeftRight size={16} color={STATUS_COLOR[o.status]} />
             <p style={{ flex: 1, fontSize: '13px', fontWeight: 700, color: C.textPrimary, margin: 0 }}>

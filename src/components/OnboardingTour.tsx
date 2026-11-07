@@ -83,7 +83,7 @@ export const OnboardingTour: React.FC = () => {
       style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(4,8,20,0.88)', backdropFilter: 'blur(12px)' }}
       onClick={(e) => e.target === e.currentTarget && finish()}
     >
-      <div style={{ width: '100%', maxWidth: '380px', background: C.bgCard, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '22px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
+      <div style={{ width: '100%', maxWidth: '380px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '22px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
         <div style={{ height: '2px', background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)` }} />
 
         <div style={{ padding: '28px 28px 20px', textAlign: 'center' }}>

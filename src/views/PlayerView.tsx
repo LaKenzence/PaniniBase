@@ -17,7 +17,7 @@ export const PlayerView: React.FC = () => {
 
   if (!player && !allReady) {
     return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bgBase }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
         <p style={{ fontSize: '13px', color: C.textTertiary }}>{t('Chargement du joueur…')}</p>
       </div>
     );
@@ -25,7 +25,7 @@ export const PlayerView: React.FC = () => {
 
   if (!player) {
     return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bgBase }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
         <p style={{ fontSize: '13px', color: C.textTertiary }}>{t('Joueur introuvable')}</p>
       </div>
     );
@@ -103,7 +103,7 @@ export const PlayerView: React.FC = () => {
                 className="card-tactile"
                 {...clickable(() => goAlbum(edition.id, { sticker: sticker.number }), `${albumName(edition.label, t)}, ${sticker.code ?? `#${sticker.number}`}${owned ? `, ${t('possédé')}` : ''}`)}
                 style={{
-                  background: C.bgCard, borderRadius: '14px', overflow: 'hidden', cursor: 'pointer',
+                  background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: '14px', overflow: 'hidden', cursor: 'pointer',
                   border: `1px solid ${owned ? 'rgba(46,204,113,0.35)' : 'rgba(255,255,255,0.07)'}`,
                   boxShadow: owned ? '0 0 0 1px rgba(46,204,113,0.2)' : 'none',
                   transition: 'transform 0.12s, box-shadow 0.15s, border-color 0.15s',

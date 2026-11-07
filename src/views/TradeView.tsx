@@ -131,7 +131,7 @@ export const TradeView: React.FC = () => {
   };
 
   const renderValidateBar = (otherName: string, otherUserId?: string) => (
-    <div style={{ position: 'sticky', bottom: 0, display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 14px', borderRadius: '14px', background: C.bgElevated, border: '1px solid rgba(201,162,39,0.3)', boxShadow: '0 -8px 24px rgba(0,0,0,0.4)' }}>
+    <div style={{ position: 'sticky', bottom: 0, display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 14px', borderRadius: '14px', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(201,162,39,0.3)', boxShadow: '0 -8px 24px rgba(0,0,0,0.4)' }}>
       {tradeDone ? (
         <p style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '12px', color: C.green, margin: 0, lineHeight: 1.5 }}><Check size={14} style={{ flexShrink: 0, marginTop: '2px' }} /> {tradeDone}</p>
       ) : (
@@ -302,10 +302,11 @@ export const TradeView: React.FC = () => {
 
   if (!user) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', textAlign: 'center', background: C.bgBase }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', textAlign: 'center', background: 'transparent' }}>
+        <div className="glass-card">
         <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(201,162,39,0.1)', border: '2px solid rgba(201,162,39,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: C.gold }}><ArrowLeftRight size={32} /></div>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: C.textPrimary, marginBottom: '10px' }}>{t('Mode Échange')}</h2>
-        <p style={{ fontSize: '13px', color: C.textTertiary, lineHeight: 1.7, marginBottom: '24px', maxWidth: '280px' }}>
+        <h2 className="title-gold" style={{ fontSize: '30px', marginBottom: '10px' }}>{t('Mode Échange')}</h2>
+        <p style={{ fontSize: '14px', color: C.textSecondary, lineHeight: 1.7, marginBottom: '24px', maxWidth: '300px', marginInline: 'auto' }}>
           {pendingTradeToken
             ? t("Quelqu'un t'a envoyé son annonce d'échange. Connecte-toi pour voir ce que vous pouvez vous échanger.")
             : t("Connecte-toi pour partager tes doublons et trouver les stickers qu'il te manque.")}
@@ -314,6 +315,7 @@ export const TradeView: React.FC = () => {
           <button className="btn-tactile btn-gold" onClick={() => setShowAuth(true)} style={{ padding: '11px 22px', borderRadius: '10px', border: 'none', fontSize: '13px', cursor: 'pointer' }}>{t('Se connecter')}</button>
           <button className="btn-tactile" onClick={() => { setActiveTab('home'); goHome(); }} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: C.textSecondary, fontSize: '13px', cursor: 'pointer' }}>{t('← Retour')}</button>
         </div>
+        </div>
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </div>
     );
@@ -321,9 +323,9 @@ export const TradeView: React.FC = () => {
 
   return (
     <div className="view-bg" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      <div style={{ flexShrink: 0, padding: '14px 20px 0', background: C.bgCard, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ flexShrink: 0, padding: '14px 20px 0', background: C.glassBar, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 800, color: C.textPrimary }}><ArrowLeftRight size={16} /> {t('Échanges')}</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><ArrowLeftRight size={20} color={C.goldBright} style={{ filter: 'drop-shadow(0 0 6px rgba(255,197,49,0.6))' }} /> <span className="title-gold" style={{ fontSize: '24px' }}>{t('Échanges')}</span></h1>
         </div>
         <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' }}>
           {[
@@ -357,7 +359,7 @@ export const TradeView: React.FC = () => {
               </div>
             )}
 
-            <div style={{ background: C.bgCard, border: '1px solid rgba(46,204,113,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(46,204,113,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.green }} />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: C.green }}>{t("J'ai à échanger")}</span>
@@ -387,7 +389,7 @@ export const TradeView: React.FC = () => {
               )}
             </div>
 
-            <div style={{ background: C.bgCard, border: '1px solid rgba(231,76,60,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(231,76,60,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.red }} />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: C.red }}>{t('Je recherche')}</span>
@@ -460,7 +462,7 @@ export const TradeView: React.FC = () => {
 
         {activeTab === 'find' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
               <p style={{ fontSize: '12px', color: C.textTertiary, lineHeight: 1.6, marginBottom: '12px' }}>{t("Entre le code d'échange d'un collectionneur pour voir ses doublons et ce qu'il recherche.")}</p>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder={t('Code (ex : a3f9bc)')} onKeyDown={(e) => e.key === 'Enter' && handleFetch()} style={{ flex: 1, padding: '11px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: C.textPrimary, fontSize: '13px', outline: 'none' }} />
@@ -477,7 +479,7 @@ export const TradeView: React.FC = () => {
                     <p style={{ fontSize: '11px', color: C.textTertiary, margin: '2px 0 0' }}>{t('{n} doublon|{n} doublons', { n: fetchedTrade.have.length })} · {t('{n} recherché|{n} recherchés', { n: fetchedTrade.want.length })}</p>
                   </div>
                 </div>
-                <div style={{ background: C.bgCard, border: '1px solid rgba(46,204,113,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(46,204,113,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
                   <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.green }} />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: C.green }}>{t('Propose ({n})', { n: fetchedTrade.have.length })}</span>
@@ -491,7 +493,7 @@ export const TradeView: React.FC = () => {
                     })}
                   </div>
                 </div>
-                <div style={{ background: C.bgCard, border: '1px solid rgba(231,76,60,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(231,76,60,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
                   <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.red }} />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: C.red }}>{t('Recherche ({n})', { n: fetchedTrade.want.length })}</span>
@@ -519,7 +521,7 @@ export const TradeView: React.FC = () => {
 
         {activeTab === 'compare' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
+            <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
               <p style={{ fontSize: '12px', color: C.textTertiary, lineHeight: 1.6, marginBottom: '12px' }}>
                 {t("Entre le pseudo d'un autre collectionneur pour comparer vos collections : ce que tu peux lui donner, ce qu'il peut te donner.")}
               </p>
@@ -565,7 +567,7 @@ export const TradeView: React.FC = () => {
                 </div>
 
                 {/* Tu peux lui donner */}
-                <div style={{ background: C.bgCard, border: '1px solid rgba(46,204,113,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(46,204,113,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
                   <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.green }} />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: C.green }}>{t('Tu peux lui donner ({n})', { n: compareData.iCanGive.length })}</span>
@@ -583,7 +585,7 @@ export const TradeView: React.FC = () => {
                 </div>
 
                 {/* Il/elle peut te donner */}
-                <div style={{ background: C.bgCard, border: '1px solid rgba(52,152,219,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(52,152,219,0.15)', borderRadius: '16px', overflow: 'hidden' }}>
                   <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.blue }} />
                     <span style={{ fontSize: '12px', fontWeight: 700, color: C.blue }}>{t('{name} peut te donner ({n})', { name: compareResult.username, n: compareData.theyCanGive.length })}</span>
@@ -604,7 +606,7 @@ export const TradeView: React.FC = () => {
 
                 {/* Complétion par album */}
                 {compareData.albumStats.length > 0 && (
-                  <div style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
+                  <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '16px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '12px' }}>
                       {t('Complétion par album')} <span style={{ color: C.green }}>● {t('Toi')}</span> <span style={{ color: C.blue }}>● {compareResult.username}</span>
                     </p>
@@ -676,7 +678,7 @@ export const TradeView: React.FC = () => {
             )}
 
             {matches.map((match: TradeMatch) => (
-              <div key={match.userId} style={{ background: C.bgCard, border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', overflow: 'hidden' }}>
+              <div key={match.userId} style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', overflow: 'hidden' }}>
                 {/* Header du match */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

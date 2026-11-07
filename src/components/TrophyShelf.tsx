@@ -17,7 +17,7 @@ const progressRatio = (p?: string) => {
 export const TrophyShelf: React.FC<{ badges: Badge[]; compact?: boolean }> = ({ badges, compact }) => {
   const earned = badges.filter((b) => b.earned).length;
   return (
-    <div style={{ background: `linear-gradient(180deg, ${C.bgCard}, #0A1220)`, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '18px', padding: compact ? '14px 14px 0' : '18px 18px 0', overflow: 'hidden' }}>
+    <div style={{ background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '18px', padding: compact ? '14px 14px 0' : '18px 18px 0', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ fontSize: '14px', fontWeight: 800, color: C.textPrimary }}>{t('🏆 Vitrine')}</h3>
         <span style={{ fontSize: '11px', color: C.textTertiary }}><b style={{ color: C.gold }}>{earned}</b> / {badges.length} {t('trophées')}</span>
@@ -36,7 +36,7 @@ export const TrophyShelf: React.FC<{ badges: Badge[]; compact?: boolean }> = ({ 
             }}>
               <Icon size={compact ? 22 : 26} strokeWidth={2.2} />
               {!ok && (
-                <span style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '20px', height: '20px', borderRadius: '50%', background: C.bgElevated, border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.textTertiary }}>
+                <span style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '20px', height: '20px', borderRadius: '50%', background: C.glassStrong, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.textTertiary }}>
                   <Lock size={10} />
                 </span>
               )}

@@ -111,13 +111,13 @@ export const StickerCard: React.FC<Props> = ({ sticker, selected, onClick }) => 
         className={justChanged ? 'sticker-pop' : ''}
         style={{
           position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: '10px', cursor: 'pointer',
-          background: 'repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px), #0A1220',
+          background: 'repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 6px, transparent 6px 12px), rgba(10,14,38,0.62)',
           border: `1.5px dashed ${selected ? C.red : 'rgba(255,255,255,0.14)'}`,
           boxShadow: selected ? `0 0 0 1px ${C.red}, 0 6px 18px rgba(231,76,60,0.3)` : 'none',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden', transition: 'border-color 0.15s, background 0.15s',
         }}
-        onMouseEnter={(e) => { if (!selected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
+        onMouseEnter={(e) => { if (!selected) e.currentTarget.style.borderColor = 'rgba(255,197,49,0.55)'; }}
         onMouseLeave={(e) => { if (!selected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; }}
       >
         <span style={{ position: 'absolute', top: '6px', left: '7px', fontSize: '11px', filter: 'grayscale(0.5)', opacity: 0.85 }}>{sticker.player?.flag}</span>

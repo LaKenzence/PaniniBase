@@ -67,7 +67,7 @@ export const DetailPanel: React.FC<Props> = ({ editionId, sticker, onClose }) =>
 
   if (!sticker) {
     return (
-      <div style={{ width: '200px', height: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px', background: C.bgCard, borderLeft: '1px solid rgba(255,255,255,0.07)', boxSizing: 'border-box' }}>
+      <div style={{ width: '200px', height: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px', background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderLeft: '1px solid rgba(255,255,255,0.07)', boxSizing: 'border-box' }}>
         <div style={{ fontSize: '36px', opacity: 0.1, marginBottom: '10px' }}>👆</div>
         <p style={{ fontSize: '11px', color: C.textTertiary, lineHeight: 1.5 }}>{t('Clique sur un sticker pour voir ses détails')}</p>
         <p style={{ fontSize: '11px', color: C.textTertiary, marginTop: '8px', opacity: 0.6 }}>{t('Espace = ✓/✕')}</p>
@@ -93,7 +93,7 @@ export const DetailPanel: React.FC<Props> = ({ editionId, sticker, onClose }) =>
         />
       )}
 
-      <div style={{ width: '210px', height: '100%', flexShrink: 0, overflowY: 'auto', background: `linear-gradient(180deg, #0d1830 0%, ${C.bgBase} 100%)`, borderLeft: '1px solid rgba(255,255,255,0.07)', boxSizing: 'border-box' }}>
+      <div style={{ width: '210px', height: '100%', flexShrink: 0, overflowY: 'auto', background: 'rgba(10,13,34,0.78)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderLeft: '1px solid rgba(255,255,255,0.07)', boxSizing: 'border-box' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <span style={{ fontSize: '11px', fontWeight: 700, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('Détail')}</span>
@@ -197,7 +197,7 @@ export const DetailPanel: React.FC<Props> = ({ editionId, sticker, onClose }) =>
                         }
                         <span style={{ position: 'absolute', top: '1px', left: '2px', fontSize: '6px', color: 'rgba(255,255,255,0.8)', background: 'rgba(0,0,0,0.5)', padding: '1px 2px', borderRadius: '2px' }}>{nb.number}</span>
                       </div>
-                      <div style={{ padding: '2px 3px', background: C.bgCard }}>
+                      <div style={{ padding: '2px 3px', background: C.glass, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                         <p style={{ fontSize: '6.5px', color: C.textTertiary, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{nb.player?.name.split(' ').pop()}</p>
                       </div>
                     </div>
