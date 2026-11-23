@@ -44,7 +44,7 @@ export const PlayerView: React.FC = () => {
   return (
     <div className="slide-in view-bg" style={{ flex: 1, overflowY: 'auto' }}>
       {/* ── Hero ── */}
-      <div style={{ background: 'linear-gradient(160deg, #0d1830 0%, #0a1525 100%)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '20px' }}>
+      <div style={{ background: C.glassBar, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '20px' }}>
         <button
           className="btn-tactile"
           onClick={goBack}
@@ -59,7 +59,7 @@ export const PlayerView: React.FC = () => {
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ fontSize: '19px', fontWeight: 800, color: C.textPrimary, letterSpacing: '-0.3px' }}>{player.name}</h2>
+              <h2 className="title-gold" style={{ fontSize: '26px' }}>{player.name}</h2>
               <button
                 className="btn-tactile"
                 onClick={() => selectedPlayerKey && toggleFavorite(selectedPlayerKey)}

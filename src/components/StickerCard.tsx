@@ -145,9 +145,11 @@ export const StickerCard: React.FC<Props> = ({ sticker, selected, onClick }) => 
         position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer',
         background: hasImage ? '#000' : bg,
         // Liseré blanc façon sticker + ombre "collé sur la page"
+        // Brillant : cadre doré + halo ; sinon liseré blanc façon sticker. Lueur violette « posé sur la galaxie ».
         boxShadow: [
-          'inset 0 0 0 3px rgba(255,255,255,0.92)',
+          sticker.isShiny ? 'inset 0 0 0 3px #ffd34d, inset 0 0 0 4px rgba(120,70,0,0.5)' : 'inset 0 0 0 3px rgba(255,255,255,0.92)',
           ring ? `0 0 0 2px ${ring}` : '',
+          sticker.isShiny ? `0 0 ${hovering ? 26 : 14}px rgba(255,197,49,${hovering ? 0.6 : 0.35})` : `0 0 ${hovering ? 22 : 12}px rgba(130,100,255,${hovering ? 0.35 : 0.18})`,
           hovering ? '0 14px 30px rgba(0,0,0,0.55)' : '0 3px 10px rgba(0,0,0,0.45)',
         ].filter(Boolean).join(', '),
         transform: hovering
@@ -201,7 +203,7 @@ export const StickerCard: React.FC<Props> = ({ sticker, selected, onClick }) => 
         {/* Bandeau nom, comme sur un vrai sticker */}
         <div style={{
           position: 'absolute', left: '3px', right: '3px', bottom: '3px', zIndex: 3, padding: '3px 5px 4px',
-          background: sticker.isShiny ? `linear-gradient(90deg, ${C.goldLight}, ${C.gold})` : 'rgba(255,255,255,0.94)',
+          background: sticker.isShiny ? 'linear-gradient(90deg, #ffe27a, #ffc531 50%, #e9a514)' : 'rgba(255,255,255,0.94)',
           borderRadius: '0 0 7px 7px', textAlign: 'center',
         }}>
           <div style={{ fontSize: '11px', fontWeight: 900, color: '#0A1220', letterSpacing: '0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.35 }}>
@@ -216,9 +218,18 @@ export const StickerCard: React.FC<Props> = ({ sticker, selected, onClick }) => 
           opacity: hovering ? 1 : 0, transition: 'opacity 0.2s', mixBlendMode: 'overlay',
         }} />
 
-        {/* Holographique shiny : toujours un peu visible, fort au survol */}
+        {/* Reflet holographique léger au survol, sur tous les stickers (effet carte brillante) */}
+        {!sticker.isShiny && (
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4,
+            background: `linear-gradient(${110 + glareX}deg, transparent 20%, rgba(160,120,255,0.22) 40%, rgba(255,215,120,0.22) 55%, transparent 75%)`,
+            opacity: hovering ? 1 : 0, transition: 'opacity 0.25s', mixBlendMode: 'screen',
+          }} />
+        )}
+
+        {/* Holographique shiny : toujours un peu visible (et animé), fort au survol */}
         {sticker.isShiny && (
-          <div className="sticker-holo-layer" style={{
+          <div className="sticker-holo-layer sticker-holo-layer--live" style={{
             position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4,
             background: `linear-gradient(${110 + glareX}deg, rgba(255,0,150,0.28), rgba(0,200,255,0.25) 30%, rgba(255,215,0,0.32) 55%, rgba(150,0,255,0.25) 80%)`,
             backgroundSize: '200% 200%',
@@ -230,7 +241,7 @@ export const StickerCard: React.FC<Props> = ({ sticker, selected, onClick }) => 
 
       {/* Doublons */}
       {dupes > 0 && (
-        <span style={{ position: 'absolute', top: '24px', right: '6px', zIndex: 10, padding: '1px 6px', borderRadius: '10px', background: C.gold, fontSize: '11px', fontWeight: 900, color: '#000', boxShadow: '0 0 8px rgba(201,162,39,0.8)' }}>
+        <span style={{ position: 'absolute', top: '24px', right: '6px', zIndex: 10, padding: '1px 6px', borderRadius: '10px', background: 'linear-gradient(180deg, #ffe27a, #ffc531)', fontSize: '11px', fontWeight: 900, color: '#1a1205', boxShadow: '0 0 10px rgba(255,197,49,0.8)' }}>
           +{dupes}
         </span>
       )}

@@ -750,3 +750,5 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 72%, transparent 98%);
   mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 72%, transparent 98%);
 }
+/* Stickers brillants : le reflet holographique défile en continu */
+.sticker-holo-layer--live { animation: holo-shift 4s ease-in-out infinite; }
