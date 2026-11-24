@@ -75,7 +75,7 @@ export const LegalModal: React.FC<Props> = ({ onClose }) => {
           </Section>
 
           <Section title="Crédits photos">
-            Photos des joueurs : Wikimedia Commons, sous licences libres. Les autres joueurs sont représentés par une silhouette.
+            Photos des joueurs : Wikimedia Commons, sous licences libres. L'auteur et la licence de chaque photo sont indiqués sur la fiche du sticker. Les joueurs sans photo libre sont représentés par une silhouette.
           </Section>
           <ul style={{ listStyle: 'none', padding: 0, margin: '-8px 0 0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {Object.values(PHOTOS).sort((a, b) => a.name.localeCompare(b.name, 'fr')).map((p) => (

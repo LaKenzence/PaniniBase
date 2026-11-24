@@ -1951,9 +1951,15 @@ const photoKey = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '')
 const PHOTOS_BY_NAME = new Map(Object.values(PHOTOS).map((p) => [photoKey(p.name), p]));
 
 /** Photo (et crédits) du joueur d'un sticker, s'il en a une. */
+/** Photos des effectifs complets (src/data/squad-photos/), par id de sticker. */
+const SQUAD_PHOTOS = new Map<string, PlayerPhoto>();
+type SquadPhotos = Record<string, [string, string, string, string]>;
+// La page Commons se déduit de la miniature : …/thumb/a/ab/Fichier.jpg/400px-Fichier.jpg
+const commonsPage = (thumb: string) => { const p = thumb.split('?')[0].split('/'); return `https://commons.wikimedia.org/wiki/File:${p.includes('thumb') ? p[p.length - 2] : p[p.length - 1]}`; };
+
 export const getPhoto = (s: Sticker): PlayerPhoto | undefined =>
   s.category === 'badge' || !s.player ? undefined
-    : PHOTOS[s.player.playerKey ?? ''] ?? PHOTOS_BY_NAME.get(photoKey(s.player.name));
+    : PHOTOS[s.player.playerKey ?? ''] ?? PHOTOS_BY_NAME.get(photoKey(s.player.name)) ?? SQUAD_PHOTOS.get(s.id);
 
 const attachPhoto = (s: Sticker) => { if (!s.imageUrl) s.imageUrl = getPhoto(s)?.url; };
 Object.values(STICKERS_BY_EDITION).forEach((list) => list.forEach(attachPhoto));
@@ -2092,7 +2098,7 @@ function mergeSquads(editionId: string, squads: Record<string, string>, list: St
 
 const TEAM_CODE_BY_NAME = Object.fromEntries(Object.entries(TEAMS).map(([code, t]) => [t.name, code]));
 
-function buildFromChecklist(editionId: string, checklist: string, squads: Record<string, string> | undefined, hand: Sticker[]) {
+function buildFromChecklist(editionId: string, checklist: string, squads: Record<string, string> | undefined, hand: Sticker[], photos: SquadPhotos = {}) {
   const edition = EDITIONS.find((e) => e.id === editionId)!;
   const list: Sticker[] = [];
   for (const line of checklist.split('\n')) {
@@ -2116,6 +2122,11 @@ function buildFromChecklist(editionId: string, checklist: string, squads: Record
       const shirt = h?.player?.jerseyNumber ?? (q ? Number(q[0]) : undefined);
       // Nom déjà saisi à la main de préférence : les vieilles checklists n'ont pas les accents (« Pele »)
       s = mkPlayer(editionId, number, h?.player?.name ?? name, section, meta.flag, meta.colKey, pos!, shirt!, h?.player?.club ?? '', h?.player?.playerKey, shiny || !!h?.isShiny, h?.imageUrl);
+      const squadPhoto = photos[`${section}|${name}`];
+      if (squadPhoto && !getPhoto(s) && !s.imageUrl) {
+        const [url, author, license, licenseUrl] = squadPhoto;
+        SQUAD_PHOTOS.set(s.id, { name: s.player!.name, url, author, license, licenseUrl, source: commonsPage(url) });
+      }
       attachPhoto(s);
       registerPlayer(editionId, s);
     }
@@ -2153,6 +2164,7 @@ export const onEditionRenumbered = (fn: (editionId: string, map: Map<number, num
 
 const SQUAD_FILES = import.meta.glob<{ default: Record<string, string> }>('./squads/*.ts');
 const CHECKLIST_FILES = import.meta.glob<{ default: string }>('./checklists/*.ts');
+const PHOTO_FILES = import.meta.glob<{ default: SquadPhotos }>('./squad-photos/*.ts');
 const pending: Record<string, Promise<void>> = {};
 const loaded = new Set<string>();
 let dataVersion = 0;
@@ -2166,10 +2178,10 @@ export function loadEdition(editionId: string): Promise<void> {
   const file = SQUAD_FILES[`./squads/${editionId}.ts`];
   const checklistFile = CHECKLIST_FILES[`./checklists/${editionId}.ts`];
   if ((!file && !checklistFile) || loaded.has(editionId)) return Promise.resolve();
-  return (pending[editionId] ??= Promise.all([file?.(), checklistFile?.()]).then(([squadMod, checklistMod]) => {
+  return (pending[editionId] ??= Promise.all([file?.(), checklistFile?.(), PHOTO_FILES[`./squad-photos/${editionId}.ts`]?.()]).then(([squadMod, checklistMod, photoMod]) => {
     if (checklistMod) {
       const hand = STICKERS_BY_EDITION[editionId] ?? [];
-      const next = buildFromChecklist(editionId, checklistMod.default, squadMod?.default, hand);
+      const next = buildFromChecklist(editionId, checklistMod.default, squadMod?.default, hand, photoMod?.default);
       const old = squadMod ? mergeSquads(editionId, squadMod.default, [...hand], false) : hand;
       STICKERS_BY_EDITION[editionId] = next;
       const map = renumberMap(old, next);
