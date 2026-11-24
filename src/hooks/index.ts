@@ -2,11 +2,13 @@ import { useMemo } from 'react';
 import { EDITIONS, STICKERS_BY_EDITION } from '../data/stickers';
 import { useCollectionStore } from '../store';
 import type { Sticker, AlbumFilter } from '../types';
+import { useDataVersion } from './useEditionData';
 
 // ─── Global stats across all editions ────────────────────────────────────────
 
 export function useGlobalStats() {
   const { collection } = useCollectionStore();
+  const version = useDataVersion();
 
   return useMemo(() => {
     const totalStickers = EDITIONS.reduce((sum, e) => sum + e.totalStickers, 0);
@@ -14,13 +16,14 @@ export function useGlobalStats() {
     const totalOwned = Object.values(collection).filter((e) => e.owned).length;
     const totalDupes = Object.values(collection).reduce((sum, e) => sum + e.duplicates, 0);
     return { totalStickers, totalCatalogued, totalOwned, totalDupes };
-  }, [collection]);
+  }, [collection, version]);
 }
 
 // ─── Per-edition stats ────────────────────────────────────────────────────────
 
 export function useEditionStats(editionId: string) {
-  const { isOwned, getDuplicates } = useCollectionStore();
+  const { collection, isOwned, getDuplicates } = useCollectionStore();
+  const version = useDataVersion();
   const stickers = STICKERS_BY_EDITION[editionId] ?? [];
   const edition = EDITIONS.find((e) => e.id === editionId)!;
 
@@ -31,13 +34,14 @@ export function useEditionStats(editionId: string) {
     const missing = catalogued - owned;
     const pct = catalogued > 0 ? Math.round((owned / edition.totalStickers) * 100) : 0;
     return { catalogued, owned, missing, dupes, pct, total: edition.totalStickers };
-  }, [editionId, stickers, edition, isOwned, getDuplicates]);
+  }, [editionId, stickers, edition, collection, version, isOwned, getDuplicates]);
 }
 
 // ─── Per-team stats within an album ──────────────────────────────────────────
 
 export function useTeamStats(editionId: string) {
-  const { isOwned } = useCollectionStore();
+  const { collection, isOwned } = useCollectionStore();
+  const version = useDataVersion();
   const stickers = STICKERS_BY_EDITION[editionId] ?? [];
 
   return useMemo(() => {
@@ -50,13 +54,14 @@ export function useTeamStats(editionId: string) {
       if (isOwned(editionId, s.number)) teams[team].owned++;
     }
     return Object.entries(teams).map(([name, data]) => ({ name, ...data }));
-  }, [editionId, stickers, isOwned]);
+  }, [editionId, stickers, collection, version, isOwned]);
 }
 
 // ─── Filtered stickers for album view ────────────────────────────────────────
 
 export function useFilteredStickers(editionId: string, filter: AlbumFilter, search: string, teamFilter: string | null) {
-  const { isOwned, getDuplicates } = useCollectionStore();
+  const { collection, isOwned, getDuplicates } = useCollectionStore();
+  const version = useDataVersion();
   const stickers = STICKERS_BY_EDITION[editionId] ?? [];
 
   return useMemo(() => {
@@ -68,18 +73,19 @@ export function useFilteredStickers(editionId: string, filter: AlbumFilter, sear
       if (search) {
         const q = search.toLowerCase();
         const matchName = s.player?.name.toLowerCase().includes(q);
-        const matchNum = String(s.number).includes(q);
+        const matchNum = String(s.number).includes(q) || !!s.code?.toLowerCase().replace(/\s/g, '').includes(q.replace(/\s/g, ''));
         const matchTeam = s.teamName?.toLowerCase().includes(q);
         if (!matchName && !matchNum && !matchTeam) return false;
       }
       return true;
     });
-  }, [editionId, stickers, filter, search, teamFilter, isOwned, getDuplicates]);
+  }, [editionId, stickers, filter, search, teamFilter, collection, version, isOwned, getDuplicates]);
 }
 
 // ─── Neighbor stickers (for detail panel) ────────────────────────────────────
 
 export function useNeighborStickers(editionId: string, number: number, count = 5) {
+  const version = useDataVersion();
   const stickers = STICKERS_BY_EDITION[editionId] ?? [];
   return useMemo(() => {
     const sorted = [...stickers].sort((a, b) => a.number - b.number);
@@ -87,5 +93,5 @@ export function useNeighborStickers(editionId: string, number: number, count = 5
     if (idx === -1) return [];
     const start = Math.max(0, idx - Math.floor(count / 2));
     return sorted.slice(start, start + count);
-  }, [editionId, number, stickers, count]);
+  }, [editionId, number, stickers, count, version]);
 }

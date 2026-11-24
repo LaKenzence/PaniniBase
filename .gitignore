@@ -1,0 +1,28 @@
+# Dépendances et build
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Variables d'environnement (clés Supabase, DSN Sentry…)
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Éditeurs / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Playwright
+test-results/
+playwright-report/

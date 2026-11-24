@@ -1,0 +1,58 @@
+// Noms d'équipes et nationalités tels qu'ils sont stockés dans les données (en
+// français), traduits en anglais et en espagnol. Un test vérifie que chaque
+// équipe des données a sa traduction.
+export const TEAMS_EN: Record<string, string> = {
+  'Afrique du Sud': 'South Africa', 'Algérie': 'Algeria', 'Allemagne': 'Germany', 'Angleterre': 'England',
+  'Angola': 'Angola', 'Arabie Saoudite': 'Saudi Arabia', 'Argentine': 'Argentina', 'Australie': 'Australia',
+  'Autriche': 'Austria', 'Belgique': 'Belgium', 'Bolivie': 'Bolivia', 'Bosnie-Herzégovine': 'Bosnia and Herzegovina',
+  'Brésil': 'Brazil', 'Bulgarie': 'Bulgaria', 'Cameroun': 'Cameroon', 'Canada': 'Canada', 'Cap-Vert': 'Cape Verde',
+  'Chili': 'Chile', 'Chine': 'China', 'Colombie': 'Colombia', 'Congo RD': 'DR Congo', 'Corée du Nord': 'North Korea',
+  'Corée du Sud': 'South Korea', 'Costa Rica': 'Costa Rica', 'Croatie': 'Croatia', 'Curaçao': 'Curaçao',
+  "Côte d'Ivoire": 'Ivory Coast', 'Danemark': 'Denmark', 'Espagne': 'Spain', 'France': 'France', 'Ghana': 'Ghana',
+  'Grèce': 'Greece', 'Haïti': 'Haiti', 'Honduras': 'Honduras', 'Hongrie': 'Hungary', 'Irak': 'Iraq', 'Iran': 'Iran',
+  'Irlande': 'Ireland', 'Irlande du Nord': 'Northern Ireland', 'Islande': 'Iceland', 'Israël': 'Israel',
+  'Italie': 'Italy', 'Jamaïque': 'Jamaica', 'Japon': 'Japan', 'Jordanie': 'Jordan', 'Koweït': 'Kuwait',
+  'Maroc': 'Morocco', 'Mexique': 'Mexico', 'Nigéria': 'Nigeria', 'Norvège': 'Norway', 'Nouvelle-Zélande': 'New Zealand',
+  'Ouzbékistan': 'Uzbekistan', 'Panama': 'Panama', 'Paraguay': 'Paraguay', 'Pays de Galles': 'Wales',
+  'Pays-Bas': 'Netherlands', 'Pologne': 'Poland', 'Portugal': 'Portugal', 'Pérou': 'Peru', 'Qatar': 'Qatar',
+  'RDA': 'East Germany', 'Roumanie': 'Romania', 'Russie': 'Russia', 'Salvador': 'El Salvador', 'Serbie': 'Serbia',
+  'Serbie-et-Monténégro': 'Serbia and Montenegro', 'Slovaquie': 'Slovakia', 'Slovénie': 'Slovenia',
+  'Suisse': 'Switzerland', 'Suède': 'Sweden', 'Sénégal': 'Senegal', 'Tchécoslovaquie': 'Czechoslovakia',
+  'Tchéquie': 'Czechia', 'Togo': 'Togo', 'Trinité-et-Tobago': 'Trinidad and Tobago', 'Tunisie': 'Tunisia',
+  'Turquie': 'Turkey', 'Türkiye': 'Türkiye', 'URSS': 'USSR', 'Ukraine': 'Ukraine', 'Uruguay': 'Uruguay',
+  'Yougoslavie': 'Yugoslavia', 'Zaïre': 'Zaire', 'Écosse': 'Scotland', 'Égypte': 'Egypt',
+  'Émirats arabes unis': 'United Arab Emirates', 'Équateur': 'Ecuador', 'États-Unis': 'United States',
+  // Pages spéciales de l'album 2026 (déjà en anglais dans les données)
+  'We Are Panini': 'We Are Panini', 'FIFA World Cup 2026': 'FIFA World Cup 2026',
+  'FIFA World Cup History': 'FIFA World Cup History', 'Host Countries and Cities': 'Host Countries and Cities',
+  // Pages hors équipes des albums 2002–2022 (checklists Panini)
+  'Introduction': 'Introduction', 'Stades': 'Stadiums', 'Villes hôtes': 'Host cities', 'Musée FIFA': 'FIFA Museum', 'Légendes': 'Legends',
+  'Histoire': 'History', 'Affiches': 'Posters',
+};
+
+export const TEAMS_ES: Record<string, string> = {
+  'Afrique du Sud': 'Sudáfrica', 'Algérie': 'Argelia', 'Allemagne': 'Alemania', 'Angleterre': 'Inglaterra',
+  'Angola': 'Angola', 'Arabie Saoudite': 'Arabia Saudí', 'Argentine': 'Argentina', 'Australie': 'Australia',
+  'Autriche': 'Austria', 'Belgique': 'Bélgica', 'Bolivie': 'Bolivia', 'Bosnie-Herzégovine': 'Bosnia y Herzegovina',
+  'Brésil': 'Brasil', 'Bulgarie': 'Bulgaria', 'Cameroun': 'Camerún', 'Canada': 'Canadá', 'Cap-Vert': 'Cabo Verde',
+  'Chili': 'Chile', 'Chine': 'China', 'Colombie': 'Colombia', 'Congo RD': 'RD Congo', 'Corée du Nord': 'Corea del Norte',
+  'Corée du Sud': 'Corea del Sur', 'Costa Rica': 'Costa Rica', 'Croatie': 'Croacia', 'Curaçao': 'Curazao',
+  "Côte d'Ivoire": 'Costa de Marfil', 'Danemark': 'Dinamarca', 'Espagne': 'España', 'France': 'Francia', 'Ghana': 'Ghana',
+  'Grèce': 'Grecia', 'Haïti': 'Haití', 'Honduras': 'Honduras', 'Hongrie': 'Hungría', 'Irak': 'Irak', 'Iran': 'Irán',
+  'Irlande': 'Irlanda', 'Irlande du Nord': 'Irlanda del Norte', 'Islande': 'Islandia', 'Israël': 'Israel',
+  'Italie': 'Italia', 'Jamaïque': 'Jamaica', 'Japon': 'Japón', 'Jordanie': 'Jordania', 'Koweït': 'Kuwait',
+  'Maroc': 'Marruecos', 'Mexique': 'México', 'Nigéria': 'Nigeria', 'Norvège': 'Noruega', 'Nouvelle-Zélande': 'Nueva Zelanda',
+  'Ouzbékistan': 'Uzbekistán', 'Panama': 'Panamá', 'Paraguay': 'Paraguay', 'Pays de Galles': 'Gales',
+  'Pays-Bas': 'Países Bajos', 'Pologne': 'Polonia', 'Portugal': 'Portugal', 'Pérou': 'Perú', 'Qatar': 'Catar',
+  'RDA': 'RDA', 'Roumanie': 'Rumanía', 'Russie': 'Rusia', 'Salvador': 'El Salvador', 'Serbie': 'Serbia',
+  'Serbie-et-Monténégro': 'Serbia y Montenegro', 'Slovaquie': 'Eslovaquia', 'Slovénie': 'Eslovenia',
+  'Suisse': 'Suiza', 'Suède': 'Suecia', 'Sénégal': 'Senegal', 'Tchécoslovaquie': 'Checoslovaquia',
+  'Tchéquie': 'Chequia', 'Togo': 'Togo', 'Trinité-et-Tobago': 'Trinidad y Tobago', 'Tunisie': 'Túnez',
+  'Turquie': 'Turquía', 'Türkiye': 'Turquía', 'URSS': 'URSS', 'Ukraine': 'Ucrania', 'Uruguay': 'Uruguay',
+  'Yougoslavie': 'Yugoslavia', 'Zaïre': 'Zaire', 'Écosse': 'Escocia', 'Égypte': 'Egipto',
+  'Émirats arabes unis': 'Emiratos Árabes Unidos', 'Équateur': 'Ecuador', 'États-Unis': 'Estados Unidos',
+  'We Are Panini': 'We Are Panini', 'FIFA World Cup 2026': 'Copa Mundial de la FIFA 2026',
+  'FIFA World Cup History': 'Historia de la Copa Mundial', 'Host Countries and Cities': 'Países y ciudades sede',
+  'Introduction': 'Introducción', 'Stades': 'Estadios', 'Villes hôtes': 'Ciudades sede', 'Musée FIFA': 'Museo FIFA', 'Légendes': 'Leyendas',
+  'Histoire': 'Historia', 'Affiches': 'Carteles',
+};

@@ -22,6 +22,7 @@ export interface Sticker {
   category: StickerCategory;
   isShiny: boolean;
   imageUrl?: string;        // ← NOUVEAU : URL Supabase Storage
+  code?: string;            // Code imprimé par Panini quand il diffère du numéro (« FRA 19 »)
   player?: PlayerOnSticker;
   teamName?: string;
 }
@@ -50,9 +51,11 @@ export interface Player {
 
 // ─── Collection (user state) ─────────────────────────────────────────────────
 
+export type StickerNum = string | number;
+
 export interface CollectionEntry {
   stickerEditionId: string;
-  stickerNumber: number;
+  stickerNumber: StickerNum;
   owned: boolean;
   duplicates: number;
 }
